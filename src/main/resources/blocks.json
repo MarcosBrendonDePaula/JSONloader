@@ -1,0 +1,47 @@
+[
+  {
+    "id": "magic_ore_local",
+    "name": "Magic Ore (Local)",
+    "material": "stone",
+    "properties": {
+      "hardness": 4.0,
+      "resistance": 6.0,
+      "requires_tool": true
+    },
+    "texture": {
+      "type": "local",
+      "value": "magic_ore" // Assumes magic_ore.png exists locally
+    }
+  },
+  {
+    "id": "web_block_example",
+    "name": "Web Block Example",
+    "material": "metal",
+    "properties": {
+      "hardness": 5.0,
+      "resistance": 10.0,
+      "requires_tool": true
+    },
+    "texture": {
+      "type": "url",
+      // Using the URL provided by the user
+      "value": "https://private-us-east-1.manuscdn.com/sessionFile/Dcixe6d6i3zhD7On0uO7jZ/sandbox/D7KX3QwgFyZbNVhOdXXeMW_1748085472249_na1fn_bW1faW1hZ2U.webp?Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvRGNpeGU2ZDZpM3poRDdPbjB1TzdqWi9zYW5kYm94L0Q3S1gzUXdnRnlaYk5WaE9kWFhlTVdfMTc0ODA4NTQ3MjI0OV9uYTFmbl9iVzFmYVcxaFoyVS53ZWJwIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzY3MjI1NjAwfX19XX0_&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=ndqTOVL9lU8QSzKVn9HtG85zHYYcrqDw7~rf1wYMmcTwJ~bJl24pUH1SR7nY80kE91HNH~olFm5CTQUu~Hni52dp0E4giLtCe7HsMp380h6Bw~Do388p5ShXc93VCRZUA4IOG6EuyfzVV4-dWkL38D4m4FSjqDsBxuo-R7wPROMeMqp7nFKzPJZw-vD0orL3MwF2aYhJF9xWg4z5ndzrlT6izDePptlDi4ssVzTxQ2vq6wqe0iC9wUQ4khhEhy1dB4wn~yFVluiqNc2aIuWd28JZThr4IpOohAuvpFjif2hQ6taTH0pq45Imbm2Ga~sKVenBDLIP84-L5dcLRWmvIg__"
+    }
+  },
+  {
+    "id": "encoded_block_example",
+    "name": "Encoded Block Example",
+    "material": "wood",
+    "properties": {
+      "hardness": 2.0,
+      "resistance": 2.0,
+      "requires_tool": false
+    },
+    "texture": {
+      "type": "base64",
+      // Simple 16x16 red square PNG encoded in Base64
+      "value": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAMSURBVDhPY/jPYAAAAwAB/29DGAAAAABJRU5ErkJggg=="
+    }
+  }
+]
+
