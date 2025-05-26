@@ -1,0 +1,57 @@
+[
+  {
+    "id": "magic_dust",
+    "name": "Pó Mágico",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 64
+    },
+    "texture": {
+      "type": "local",
+      "value": "magic_dust"
+    }
+  },
+  {
+    "id": "enchanted_apple",
+    "name": "Maçã Encantada",
+    "type": "food",
+    "properties": {
+      "max_stack_size": 16,
+      "food_properties": {
+        "nutrition": 4,
+        "saturation_modifier": 1.2,
+        "is_meat": false,
+        "can_always_eat": true,
+        "effects": [
+          {
+            "effect_id": "minecraft:regeneration",
+            "duration": 100,
+            "amplifier": 1,
+            "probability": 1.0
+          }
+        ]
+      }
+    },
+    "texture": {
+      "type": "url",
+      "value": "https://private-us-east-1.manuscdn.com/sessionFile/Dcixe6d6i3zhD7On0uO7jZ/sandbox/D7KX3QwgFyZbNVhOdXXeMW_1748085472249_na1fn_bW1faW1hZ2U.webp"
+    }
+  },
+  {
+    "id": "frost_sword",
+    "name": "Espada de Gelo",
+    "type": "tool_sword",
+    "properties": {
+      "durability": 1500,
+      "tool_properties": {
+        "tier": "diamond",
+        "attack_damage_modifier": 3.0,
+        "attack_speed_modifier": -2.4
+      }
+    },
+    "texture": {
+      "type": "local",
+      "value": "frost_sword"
+    }
+  }
+]
