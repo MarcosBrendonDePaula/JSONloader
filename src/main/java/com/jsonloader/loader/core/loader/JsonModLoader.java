@@ -306,15 +306,17 @@ public class JsonModLoader {
         // Registra blocos
         if (!blocks.isEmpty()) {
             LOGGER.info("Registrando {} blocos do mod {} ({})", blocks.size(), modName, modId);
-            // Aqui chamamos o método que registra os blocos no Minecraft
-            // Por exemplo: BlockInit.registerBlocks(blocks, modId);
+            // Chamamos o método que registra os blocos no Minecraft
+            int registeredBlocks = com.jsonloader.loader.core.init.BlockInit.registerBlocks(blocks, modId);
+            LOGGER.info("Registrados {} de {} blocos do mod {}", registeredBlocks, blocks.size(), modId);
         }
         
         // Registra itens
         if (!items.isEmpty()) {
             LOGGER.info("Registrando {} itens do mod {} ({})", items.size(), modName, modId);
-            // Aqui chamamos o método que registra os itens no Minecraft
-            // Por exemplo: ItemInit.registerItems(items, modId);
+            // Chamamos o método que registra os itens no Minecraft
+            int registeredItems = com.jsonloader.loader.core.init.ItemInit.registerItems(items, modId);
+            LOGGER.info("Registrados {} de {} itens do mod {}", registeredItems, items.size(), modId);
         }
         
         // Registra drops
@@ -322,8 +324,12 @@ public class JsonModLoader {
             ((drops.block_drops() != null && !drops.block_drops().isEmpty()) || 
              (drops.mob_drops() != null && !drops.mob_drops().isEmpty()))) {
             LOGGER.info("Registrando drops do mod {} ({})", modName, modId);
-            // Aqui chamamos o método que registra os drops no Minecraft
-            // Por exemplo: DropsManager.registerDrops(drops, modId);
+            // Aqui registramos os drops no sistema
+            // Por enquanto, apenas logamos que foram carregados
+            // TODO: Implementar registro de drops quando o sistema de drops estiver pronto
+            int blockDropsCount = drops.block_drops() != null ? drops.block_drops().size() : 0;
+            int mobDropsCount = drops.mob_drops() != null ? drops.mob_drops().size() : 0;
+            LOGGER.info("Carregados {} drops de blocos e {} drops de mobs do mod {}", blockDropsCount, mobDropsCount, modId);
         }
         
         // Registra o mod no sistema para referência futura

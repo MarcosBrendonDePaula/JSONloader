@@ -47,6 +47,41 @@ public class ItemInit {
             LOGGER.info("Finished JSON item registration.");
         }
     }
+    
+    /**
+     * Registra itens de um mod externo.
+     * @param items Lista de definições de itens
+     * @param modId ID do mod para prefixar os itens
+     * @return Número de itens registrados com sucesso
+     */
+    public static int registerItems(List<ItemDefinition> items, String modId) {
+        if (items == null || items.isEmpty()) {
+            LOGGER.warn("Nenhum item para registrar do mod: {}", modId);
+            return 0;
+        }
+        
+        int successCount = 0;
+        LOGGER.info("Registrando {} itens do mod: {}", items.size(), modId);
+        
+        for (ItemDefinition definition : items) {
+            try {
+                // Prefixar o ID do item com o ID do mod para evitar conflitos
+                String itemId = modId + "_" + definition.id();
+                
+                // Criar o item baseado na definição
+                Supplier<Item> itemSupplier = () -> createItemFromDefinition(definition);
+                ITEMS.register(itemId, itemSupplier);
+                
+                LOGGER.debug("Item registrado com sucesso: {}", itemId);
+                successCount++;
+            } catch (Exception e) {
+                LOGGER.error("Falha ao registrar item {} do mod {}: {}", definition.id(), modId, e.getMessage());
+            }
+        }
+        
+        LOGGER.info("Registrados com sucesso {} de {} itens do mod: {}", successCount, items.size(), modId);
+        return successCount;
+    }
 
     // Helper method to register an item based on JSON definition
     private static RegistryObject<Item> registerItemFromJson(ItemDefinition definition) {

@@ -47,6 +47,45 @@ public class BlockInit {
             LOGGER.info("Finished JSON block registration.");
         }
     }
+    
+    /**
+     * Registra blocos de um mod externo.
+     * @param blocks Lista de definições de blocos
+     * @param modId ID do mod para prefixar os blocos
+     * @return Número de blocos registrados com sucesso
+     */
+    public static int registerBlocks(List<BlockDefinition> blocks, String modId) {
+        if (blocks == null || blocks.isEmpty()) {
+            LOGGER.warn("Nenhum bloco para registrar do mod: {}", modId);
+            return 0;
+        }
+        
+        int successCount = 0;
+        LOGGER.info("Registrando {} blocos do mod: {}", blocks.size(), modId);
+        
+        for (BlockDefinition definition : blocks) {
+            try {
+                // Prefixar o ID do bloco com o ID do mod para evitar conflitos
+                String blockId = modId + "_" + definition.id();
+                
+                // Criar propriedades do bloco
+                BlockBehaviour.Properties properties = createBlockProperties(definition);
+                
+                // Registrar o bloco e seu item correspondente
+                Supplier<Block> blockSupplier = () -> new Block(properties);
+                RegistryObject<Block> blockObject = BLOCKS.register(blockId, blockSupplier);
+                ITEMS.register(blockId, () -> new BlockItem(blockObject.get(), new Item.Properties()));
+                
+                LOGGER.debug("Bloco registrado com sucesso: {}", blockId);
+                successCount++;
+            } catch (Exception e) {
+                LOGGER.error("Falha ao registrar bloco {} do mod {}: {}", definition.id(), modId, e.getMessage());
+            }
+        }
+        
+        LOGGER.info("Registrados com sucesso {} de {} blocos do mod: {}", successCount, blocks.size(), modId);
+        return successCount;
+    }
 
     // Helper method to create BlockBehaviour.Properties based on JSON definition
     private static BlockBehaviour.Properties createBlockProperties(BlockDefinition definition) {
