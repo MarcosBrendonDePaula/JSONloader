@@ -6,6 +6,9 @@ import com.jsonloader.loader.core.init.CreativeTabInit;
 import com.jsonloader.loader.core.init.ItemInit;
 import com.jsonloader.loader.core.loader.BlockDefinition;
 import com.jsonloader.loader.core.loader.JsonBlockLoader;
+import com.jsonloader.loader.core.loader.JsonItemLoader;
+import com.jsonloader.loader.core.loader.JsonDropsLoader;
+import com.jsonloader.loader.core.loader.JsonModLoader;
 import com.jsonloader.loader.core.texture.DynamicTextureManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -51,6 +54,20 @@ public class JSONloader { // Renamed class
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         LOGGER.info("HELLO FROM COMMON SETUP FOR {}!", MODID);
+        
+        // Carregar mods da pasta 'jsonmods'
+        event.enqueueWork(() -> {
+            LOGGER.info("Iniciando carregamento de mods externos da pasta 'jsonmods'...");
+            JsonModLoader.loadAllMods();
+            LOGGER.info("Carregamento de mods externos concluído.");
+            
+            // Ainda carregamos os mods internos para compatibilidade
+            LOGGER.info("Carregando definições internas de blocos, itens e drops...");
+            JsonBlockLoader.loadBlockDefinitions();
+            JsonItemLoader.loadItemDefinitions();
+            JsonDropsLoader.loadDropsDefinitions();
+            LOGGER.info("Carregamento de definições internas concluído.");
+        });
     }
 
     // Add items to creative tabs
@@ -92,4 +109,3 @@ public class JSONloader { // Renamed class
         }
     }
 }
-
