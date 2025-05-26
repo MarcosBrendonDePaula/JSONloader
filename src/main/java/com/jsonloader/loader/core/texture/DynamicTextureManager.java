@@ -1,8 +1,8 @@
-package com.yourname.yourmodid.core.texture;
+package com.jsonloader.loader.core.texture;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import com.yourname.yourmodid.YourModName;
-import com.yourname.yourmodid.core.loader.BlockDefinition;
+import com.jsonloader.loader.JSONloader;
+import com.jsonloader.loader.core.loader.BlockDefinition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DynamicTextureManager {
 
-    private static final Logger LOGGER = LogManager.getLogger(YourModName.MODID + " DynamicTextureManager");
+    private static final Logger LOGGER = LogManager.getLogger(JSONloader.MODID + " DynamicTextureManager");
     // Cache to store loaded dynamic textures to avoid redundant processing
     private static final Map<String, ResourceLocation> textureCache = new ConcurrentHashMap<>();
 
@@ -41,7 +41,7 @@ public class DynamicTextureManager {
             String textureType = def.texture().type().toLowerCase();
             String textureValue = def.texture().value();
             String blockId = def.id();
-            ResourceLocation textureLocation = new ResourceLocation(YourModName.MODID, "block/" + blockId);
+            ResourceLocation textureLocation = new ResourceLocation(JSONloader.MODID, "block/" + blockId);
 
             // Skip if already processed (e.g., during a reload)
             if (textureCache.containsKey(blockId)) {
@@ -140,7 +140,7 @@ public class DynamicTextureManager {
         } else {
             // Default behavior for 'local' textures
             String textureName = definition.texture().value();
-            return new ResourceLocation(YourModName.MODID, "block/" + textureName);
+            return new ResourceLocation(JSONloader.MODID, "block/" + textureName);
         }
     }
 
@@ -154,12 +154,12 @@ public class DynamicTextureManager {
     public static Map<String, String> generateDynamicBlockResources(BlockDefinition definition) {
         String blockId = definition.id();
         // Use the block ID itself as the texture name within the dynamic registration
-        ResourceLocation textureLoc = new ResourceLocation(YourModName.MODID, "block/" + blockId);
+        ResourceLocation textureLoc = new ResourceLocation(JSONloader.MODID, "block/" + blockId);
 
-        String blockstateJson = String.format("{\"variants\": {\"\": { \"model\": \"%s:block/%s\" }}}", YourModName.MODID, blockId);
+        String blockstateJson = String.format("{\"variants\": {\"\": { \"model\": \"%s:block/%s\" }}}", JSONloader.MODID, blockId);
         // Use minecraft:block/cube_all as parent, but override the 'all' texture
         String blockModelJson = String.format("{\"parent\": \"minecraft:block/cube_all\", \"textures\": {\"all\": \"%s\"}}", textureLoc.toString());
-        String itemModelJson = String.format("{\"parent\": \"%s:block/%s\"}", YourModName.MODID, blockId);
+        String itemModelJson = String.format("{\"parent\": \"%s:block/%s\"}", JSONloader.MODID, blockId);
 
         return Map.of(
             "blockstate", blockstateJson,
@@ -168,4 +168,3 @@ public class DynamicTextureManager {
         );
     }
 }
-
