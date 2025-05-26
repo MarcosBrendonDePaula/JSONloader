@@ -1,6 +1,7 @@
 package com.jsonloader.loader;
 
 import com.mojang.logging.LogUtils;
+import com.jsonloader.loader.core.commands.ListModsCommand;
 import com.jsonloader.loader.core.init.BlockInit;
 import com.jsonloader.loader.core.init.CreativeTabInit;
 import com.jsonloader.loader.core.init.ItemInit;
@@ -11,10 +12,12 @@ import com.jsonloader.loader.core.loader.JsonDropsLoader;
 import com.jsonloader.loader.core.loader.JsonModLoader;
 import com.jsonloader.loader.core.texture.DynamicTextureManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.commands.Commands;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -85,6 +88,13 @@ public class JSONloader { // Renamed class
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         LOGGER.info("HELLO from server starting for {}!", MODID);
+    }
+    
+    // Registrar comandos quando o servidor estiver pronto
+    @SubscribeEvent
+    public void onRegisterCommands(RegisterCommandsEvent event) {
+        LOGGER.info("Registrando comandos para {}!", MODID);
+        ListModsCommand.register(event.getDispatcher());
     }
 
     // Client-specific setup

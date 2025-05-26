@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.jsonloader.loader.JSONloader;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,22 +29,44 @@ public class JsonModLoader {
     private static final String DEFAULT_BLOCKS_JSON_FILENAME = "blocks.json";
     private static final String DEFAULT_ITEMS_JSON_FILENAME = "items.json";
     private static final String DEFAULT_DROPS_JSON_FILENAME = "drops.json";
+    
+    // Lista de mods carregados para referência e comando de listagem
+    private static final List<LoadedMod> LOADED_MODS = new ArrayList<>();
+    
+    /**
+     * Retorna a lista de mods carregados.
+     */
+    public static List<LoadedMod> getLoadedMods() {
+        return Collections.unmodifiableList(LOADED_MODS);
+    }
+    
+    /**
+     * Limpa a lista de mods carregados.
+     */
+    public static void clearLoadedMods() {
+        LOADED_MODS.clear();
+        LOGGER.info("Lista de mods carregados foi limpa");
+    }
 
     /**
      * Carrega todos os mods da pasta 'jsonmods'.
      * Cada subpasta é considerada um mod separado.
      */
     public static void loadAllMods() {
-        LOGGER.info("Iniciando carregamento de mods da pasta '{}'", JSONMODS_FOLDER);
+        LOGGER.info("=== INICIANDO CARREGAMENTO DE MODS JSON ===");
+        LOGGER.info("Diretório de mods: '{}'", JSONMODS_FOLDER);
+        
+        // Limpa a lista de mods carregados anteriormente
+        clearLoadedMods();
         
         // Verifica se a pasta jsonmods existe, se não, cria
         Path jsonmodsPath = Paths.get(JSONMODS_FOLDER);
         if (!Files.exists(jsonmodsPath)) {
             try {
                 Files.createDirectories(jsonmodsPath);
-                LOGGER.info("Pasta '{}' criada com sucesso", JSONMODS_FOLDER);
+                LOGGER.info("[Diretório] Pasta '{}' não existia e foi criada com sucesso", JSONMODS_FOLDER);
             } catch (IOException e) {
-                LOGGER.error("Falha ao criar pasta '{}': {}", JSONMODS_FOLDER, e.getMessage());
+                LOGGER.error("[ERRO CRÍTICO] Falha ao criar pasta '{}': {}", JSONMODS_FOLDER, e.getMessage());
                 return;
             }
         }
@@ -52,32 +77,49 @@ public class JsonModLoader {
                     .filter(Files::isDirectory)
                     .collect(Collectors.toList());
             
-            LOGGER.info("Encontrados {} mods na pasta '{}'", modFolders.size(), JSONMODS_FOLDER);
-            
-            // Carrega cada mod individualmente
-            for (Path modFolder : modFolders) {
-                loadMod(modFolder);
+            if (modFolders.isEmpty()) {
+                LOGGER.warn("[Aviso] Nenhum mod encontrado na pasta '{}'. Crie subpastas com arquivos mod.json para adicionar mods.", JSONMODS_FOLDER);
+            } else {
+                LOGGER.info("[Descoberta] Encontrados {} possíveis mods na pasta '{}'", modFolders.size(), JSONMODS_FOLDER);
             }
             
+            // Carrega cada mod individualmente
+            int successCount = 0;
+            for (Path modFolder : modFolders) {
+                boolean success = loadMod(modFolder);
+                if (success) {
+                    successCount++;
+                }
+            }
+            
+            LOGGER.info("=== CARREGAMENTO DE MODS CONCLUÍDO ===");
+            LOGGER.info("Total de mods encontrados: {}", modFolders.size());
+            LOGGER.info("Mods carregados com sucesso: {}", successCount);
+            LOGGER.info("Mods com falha no carregamento: {}", modFolders.size() - successCount);
+            
         } catch (IOException e) {
-            LOGGER.error("Erro ao listar mods na pasta '{}': {}", JSONMODS_FOLDER, e.getMessage());
+            LOGGER.error("[ERRO CRÍTICO] Falha ao listar mods na pasta '{}': {}", JSONMODS_FOLDER, e.getMessage());
+            LOGGER.error("Detalhes da exceção:", e);
         }
     }
     
     /**
      * Carrega um mod específico a partir de sua pasta.
+     * @return true se o mod foi carregado com sucesso, false caso contrário
      */
-    private static void loadMod(Path modFolder) {
+    private static boolean loadMod(Path modFolder) {
         String folderName = modFolder.getFileName().toString();
+        
+        LOGGER.info("[Mod] Iniciando carregamento do mod na pasta '{}'", folderName);
         
         // Carrega o arquivo mod.json
         ModMetadata metadata = loadModMetadata(modFolder);
         if (metadata == null) {
-            LOGGER.error("Falha ao carregar mod da pasta '{}': arquivo mod.json ausente ou inválido", folderName);
-            return;
+            LOGGER.error("[ERRO] Falha ao carregar mod da pasta '{}': arquivo mod.json ausente ou inválido", folderName);
+            return false;
         }
         
-        LOGGER.info("Carregando mod: {} ({})", metadata.name(), metadata.mod_id());
+        LOGGER.info("[Mod] Carregando mod: {} ({}) versão {}", metadata.name(), metadata.mod_id(), metadata.version());
         
         // Determina os nomes dos arquivos de recursos
         String blocksFile = DEFAULT_BLOCKS_JSON_FILENAME;
@@ -87,23 +129,70 @@ public class JsonModLoader {
         if (metadata.assets() != null) {
             if (metadata.assets().blocks_file() != null) {
                 blocksFile = metadata.assets().blocks_file();
+                LOGGER.debug("[Config] Arquivo de blocos personalizado: {}", blocksFile);
             }
             if (metadata.assets().items_file() != null) {
                 itemsFile = metadata.assets().items_file();
+                LOGGER.debug("[Config] Arquivo de itens personalizado: {}", itemsFile);
             }
             if (metadata.assets().drops_file() != null) {
                 dropsFile = metadata.assets().drops_file();
+                LOGGER.debug("[Config] Arquivo de drops personalizado: {}", dropsFile);
             }
         }
         
-        // Carrega blocos, itens e drops do mod
-        List<BlockDefinition> blocks = loadBlocksFromMod(modFolder, blocksFile, metadata.mod_id());
-        List<ItemDefinition> items = loadItemsFromMod(modFolder, itemsFile, metadata.mod_id());
-        DropsDefinition drops = loadDropsFromMod(modFolder, dropsFile, metadata.mod_id());
-        
-        // Registra os blocos, itens e drops carregados
-        if (!blocks.isEmpty() || !items.isEmpty() || drops != null) {
-            registerModContent(metadata, blocks, items, drops);
+        try {
+            // Carrega blocos, itens e drops do mod
+            List<BlockDefinition> blocks = loadBlocksFromMod(modFolder, blocksFile, metadata.mod_id());
+            List<ItemDefinition> items = loadItemsFromMod(modFolder, itemsFile, metadata.mod_id());
+            DropsDefinition drops = loadDropsFromMod(modFolder, dropsFile, metadata.mod_id());
+            
+            // Registra os blocos, itens e drops carregados
+            if (!blocks.isEmpty() || !items.isEmpty() || drops != null) {
+                boolean success = registerModContent(metadata, blocks, items, drops);
+                
+                if (success) {
+                    // Adiciona o mod à lista de mods carregados
+                    LoadedMod loadedMod = new LoadedMod(
+                        metadata.mod_id(),
+                        metadata.name(),
+                        metadata.version(),
+                        metadata.description(),
+                        metadata.author() != null ? metadata.author() : "Desconhecido",
+                        blocks.size(),
+                        items.size(),
+                        drops != null ? 
+                            (drops.block_drops() != null ? drops.block_drops().size() : 0) + 
+                            (drops.mob_drops() != null ? drops.mob_drops().size() : 0) : 0,
+                        modFolder.toString()
+                    );
+                    LOADED_MODS.add(loadedMod);
+                    LOGGER.info("[Sucesso] Mod {} ({}) versão {} carregado com sucesso!", metadata.name(), metadata.mod_id(), metadata.version());
+                    return true;
+                } else {
+                    LOGGER.error("[ERRO] Falha ao registrar conteúdo do mod {} ({})", metadata.name(), metadata.mod_id());
+                    return false;
+                }
+            } else {
+                LOGGER.warn("[Aviso] Mod {} ({}) não contém blocos, itens ou drops para registrar", metadata.name(), metadata.mod_id());
+                // Ainda consideramos um sucesso, apenas um mod vazio
+                LoadedMod loadedMod = new LoadedMod(
+                    metadata.mod_id(),
+                    metadata.name(),
+                    metadata.version(),
+                    metadata.description(),
+                    metadata.author() != null ? metadata.author() : "Desconhecido",
+                    0, 0, 0,
+                    modFolder.toString()
+                );
+                LOADED_MODS.add(loadedMod);
+                return true;
+            }
+        } catch (Exception e) {
+            LOGGER.error("[ERRO CRÍTICO] Exceção ao carregar mod {} ({}): {}", 
+                metadata.name(), metadata.mod_id(), e.getMessage());
+            LOGGER.error("Detalhes da exceção:", e);
+            return false;
         }
     }
     
@@ -298,44 +387,64 @@ public class JsonModLoader {
     
     /**
      * Registra o conteúdo de um mod no sistema.
+     * @return true se o registro foi bem-sucedido, false caso contrário
      */
-    private static void registerModContent(ModMetadata metadata, List<BlockDefinition> blocks, List<ItemDefinition> items, DropsDefinition drops) {
+    private static boolean registerModContent(ModMetadata metadata, List<BlockDefinition> blocks, List<ItemDefinition> items, DropsDefinition drops) {
         String modId = metadata.mod_id();
         String modName = metadata.name();
         
-        // Registra blocos
-        if (!blocks.isEmpty()) {
-            LOGGER.info("Registrando {} blocos do mod {} ({})", blocks.size(), modName, modId);
-            // Chamamos o método que registra os blocos no Minecraft
-            int registeredBlocks = com.jsonloader.loader.core.init.BlockInit.registerBlocks(blocks, modId);
-            LOGGER.info("Registrados {} de {} blocos do mod {}", registeredBlocks, blocks.size(), modId);
+        try {
+            // Registra blocos
+            if (!blocks.isEmpty()) {
+                LOGGER.info("[Registro] Registrando {} blocos do mod {} ({})", blocks.size(), modName, modId);
+                // Chamamos o método que registra os blocos no Minecraft
+                int registeredBlocks = com.jsonloader.loader.core.init.BlockInit.registerBlocks(blocks, modId);
+                LOGGER.info("[Registro] Registrados {} de {} blocos do mod {}", registeredBlocks, blocks.size(), modId);
+                
+                if (registeredBlocks < blocks.size()) {
+                    LOGGER.warn("[Aviso] Alguns blocos do mod {} não puderam ser registrados ({} de {})", 
+                        modId, blocks.size() - registeredBlocks, blocks.size());
+                }
+            }
+            
+            // Registra itens
+            if (!items.isEmpty()) {
+                LOGGER.info("[Registro] Registrando {} itens do mod {} ({})", items.size(), modName, modId);
+                // Chamamos o método que registra os itens no Minecraft
+                int registeredItems = com.jsonloader.loader.core.init.ItemInit.registerItems(items, modId);
+                LOGGER.info("[Registro] Registrados {} de {} itens do mod {}", registeredItems, items.size(), modId);
+                
+                if (registeredItems < items.size()) {
+                    LOGGER.warn("[Aviso] Alguns itens do mod {} não puderam ser registrados ({} de {})", 
+                        modId, items.size() - registeredItems, items.size());
+                }
+            }
+            
+            // Registra drops
+            if (drops != null && 
+                ((drops.block_drops() != null && !drops.block_drops().isEmpty()) || 
+                 (drops.mob_drops() != null && !drops.mob_drops().isEmpty()))) {
+                LOGGER.info("[Registro] Registrando drops do mod {} ({})", modName, modId);
+                // Aqui registramos os drops no sistema
+                // Por enquanto, apenas logamos que foram carregados
+                // TODO: Implementar registro de drops quando o sistema de drops estiver pronto
+                int blockDropsCount = drops.block_drops() != null ? drops.block_drops().size() : 0;
+                int mobDropsCount = drops.mob_drops() != null ? drops.mob_drops().size() : 0;
+                LOGGER.info("[Registro] Carregados {} drops de blocos e {} drops de mobs do mod {}", 
+                    blockDropsCount, mobDropsCount, modId);
+            }
+            
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("[ERRO CRÍTICO] Falha ao registrar conteúdo do mod {} ({}): {}", 
+                modName, modId, e.getMessage());
+            LOGGER.error("Detalhes da exceção:", e);
+            return false;
         }
-        
-        // Registra itens
-        if (!items.isEmpty()) {
-            LOGGER.info("Registrando {} itens do mod {} ({})", items.size(), modName, modId);
-            // Chamamos o método que registra os itens no Minecraft
-            int registeredItems = com.jsonloader.loader.core.init.ItemInit.registerItems(items, modId);
-            LOGGER.info("Registrados {} de {} itens do mod {}", registeredItems, items.size(), modId);
-        }
-        
-        // Registra drops
-        if (drops != null && 
-            ((drops.block_drops() != null && !drops.block_drops().isEmpty()) || 
-             (drops.mob_drops() != null && !drops.mob_drops().isEmpty()))) {
-            LOGGER.info("Registrando drops do mod {} ({})", modName, modId);
-            // Aqui registramos os drops no sistema
-            // Por enquanto, apenas logamos que foram carregados
-            // TODO: Implementar registro de drops quando o sistema de drops estiver pronto
-            int blockDropsCount = drops.block_drops() != null ? drops.block_drops().size() : 0;
-            int mobDropsCount = drops.mob_drops() != null ? drops.mob_drops().size() : 0;
-            LOGGER.info("Carregados {} drops de blocos e {} drops de mobs do mod {}", blockDropsCount, mobDropsCount, modId);
-        }
-        
-        // Registra o mod no sistema para referência futura
-        LOGGER.info("Mod {} ({}) versão {} carregado com sucesso!", modName, modId, metadata.version());
     }
 }
+
+// LoadedMod foi movido para seu próprio arquivo
 
 /**
  * Classe que representa os metadados de um mod.
