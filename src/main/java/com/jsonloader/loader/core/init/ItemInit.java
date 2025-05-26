@@ -17,6 +17,7 @@ import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -46,6 +47,21 @@ public class ItemInit {
             }
             LOGGER.info("Finished JSON item registration.");
         }
+    }
+    
+    /**
+     * Retorna todos os itens registrados para um mod específico.
+     * @param modId ID do mod para filtrar os itens
+     * @return Lista de itens do mod
+     */
+    public static List<Item> getModItems(String modId) {
+        List<Item> items = new ArrayList<>();
+        ITEMS.getEntries().forEach(itemRegistryObject -> {
+            if (itemRegistryObject.getId().getNamespace().equals(modId)) {
+                items.add(itemRegistryObject.get());
+            }
+        });
+        return items;
     }
     
     /**

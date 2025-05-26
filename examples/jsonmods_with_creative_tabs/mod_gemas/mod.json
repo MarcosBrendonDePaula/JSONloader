@@ -1,0 +1,26 @@
+{
+  "mod_id": "mod_gemas",
+  "name": "Mod de Gemas Preciosas",
+  "version": "1.0.0",
+  "description": "Adiciona minérios de gemas e itens de gemas preciosas",
+  "author": "JSONloader Team",
+  "website": "https://example.com/mods/gemas",
+  "dependencies": [],
+  "assets": {
+    "blocks_file": "blocks.json",
+    "items_file": "items.json",
+    "drops_file": "drops.json"
+  },
+  "creative_tabs": [
+    {
+      "id": "gemas_tab",
+      "title": "Gemas Preciosas",
+      "icon_item": "mod_gemas_ruby",
+      "background_texture": "",
+      "search_tags": ["gemas", "minérios", "pedras preciosas"],
+      "show_search_bar": true,
+      "position_before": "minecraft:building_blocks",
+      "position_after": ""
+    }
+  ]
+}

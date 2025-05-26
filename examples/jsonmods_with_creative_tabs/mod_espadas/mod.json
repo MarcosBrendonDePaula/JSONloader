@@ -1,0 +1,25 @@
+{
+  "mod_id": "mod_espadas",
+  "name": "Mod de Espadas Mágicas",
+  "version": "1.0.0",
+  "description": "Adiciona espadas mágicas com propriedades especiais",
+  "author": "JSONloader Team",
+  "website": "https://example.com/mods/espadas",
+  "dependencies": [],
+  "assets": {
+    "items_file": "items.json",
+    "drops_file": "drops.json"
+  },
+  "creative_tabs": [
+    {
+      "id": "espadas_tab",
+      "title": "Espadas Mágicas",
+      "icon_item": "mod_espadas_ruby_sword",
+      "background_texture": "",
+      "search_tags": ["espadas", "armas", "mágicas"],
+      "show_search_bar": true,
+      "position_before": "minecraft:combat",
+      "position_after": ""
+    }
+  ]
+}

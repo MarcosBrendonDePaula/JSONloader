@@ -40,6 +40,18 @@ public class JSONloader { // Renamed class
     public JSONloader() { // Updated constructor name
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        // Carregar mods externos ANTES do registro dos DeferredRegister
+        LOGGER.info("Carregando mods externos durante a inicialização...");
+        JsonModLoader.loadAllMods();
+        LOGGER.info("Carregamento de mods externos concluído na inicialização.");
+        
+        // Carregamos os mods internos para compatibilidade
+        LOGGER.info("Carregando definições internas de blocos, itens e drops...");
+        JsonBlockLoader.loadBlockDefinitions();
+        JsonItemLoader.loadItemDefinitions();
+        JsonDropsLoader.loadDropsDefinitions();
+        LOGGER.info("Carregamento de definições internas concluído.");
+
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
@@ -58,18 +70,11 @@ public class JSONloader { // Renamed class
     private void commonSetup(final FMLCommonSetupEvent event) {
         LOGGER.info("HELLO FROM COMMON SETUP FOR {}!", MODID);
         
-        // Carregar mods da pasta 'jsonmods'
+        // Não carregamos mods aqui, pois já foram carregados durante a inicialização
+        // para garantir que o registro ocorra antes do RegisterEvent
         event.enqueueWork(() -> {
-            LOGGER.info("Iniciando carregamento de mods externos da pasta 'jsonmods'...");
-            JsonModLoader.loadAllMods();
-            LOGGER.info("Carregamento de mods externos concluído.");
-            
-            // Ainda carregamos os mods internos para compatibilidade
-            LOGGER.info("Carregando definições internas de blocos, itens e drops...");
-            JsonBlockLoader.loadBlockDefinitions();
-            JsonItemLoader.loadItemDefinitions();
-            JsonDropsLoader.loadDropsDefinitions();
-            LOGGER.info("Carregamento de definições internas concluído.");
+            LOGGER.info("Configurando texturas dinâmicas e outros recursos pós-registro...");
+            // Qualquer configuração pós-registro pode ser feita aqui
         });
     }
 

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "copper_ore",
+    "name": "Min\u00e9rio de Copper",
+    "material": "stone",
+    "properties": {
+      "hardness": 3.0,
+      "resistance": 5.0,
+      "requires_tool": true,
+      "light_level": 0
+    },
+    "texture": {
+      "type": "base64",
+      "value": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAACj0lEQVR4nDVQS4vcRhjsbkm9PZJ6pNZrg3aF92KfAoGAD8YY+2RMDoFgiH3Lf9lfkpwCAYMPIRj7tBgTAsGQ5JZdGFtoZ9jRCL0frda2chCpU31QRdVX8Pz8HEJY1/U4jkEQ1HVtmqYQwnGcqqqmaZrnGWN8dHRUFEUQBGrbtkIIhJDneVVV9X0PIey6DgCwSLuuwxjHcayq6tXVFeKcr9drz/PmeYYQIoQsy3qmvHddlzF2c3MzDENVVZ7nUUoxxmie577vpZT3i9ePx7e+73+1/wUAcPfTj1mWfaN9MAyDc57nOeecMYbCMJRSDsPw750fAABfZ6/+ZN99dJ//ffziYffbUowQcnp6OgyDpmlIVVWEEITw3uefAAAAgLquCSHTNC0nhBAAgBAihCRJos7zbNu2rut/oG8dxxnHUcmyLMv6vgcQvJ0fh+v1drtNksS27a7rUFVV19fXEEJN03a7HYTQMAzHcSilAICn8OLL3c9P4YUQglKqKApCCIVhyDmHEB4fHwshCCFxHFNKf+UPwP+glG42m9VqpbZt23XdMr+u67qu7/d713U1TYuiCOx/XwxSyrOzMymlOo6jlNI0TULIUgwAoGla0zRt2350nxdF0XWdRVCapqZpoiiKGGNBENi2fTgcyrJciGEYlNI8zxFCjLFpmjDGeZ4jVVUtyyrLsmka3/d93z8cDlEU9X3ftu3JyckT8U5K2bYtxhhCiOq6juOYMaZpWlmWm80GYyyE2O12jLG+7/8Kvn80vPE8zzRNy7KQoii+76dpent767quZVlhGFZVtfzDOV+tVv988bIoijRNp2lCnPO6roMgIIRst9umaRRFkVKu1+vLy8slNkmSMAyFEBDC/wBRRlXQjDYmOwAAAABJRU5ErkJggg=="
+    }
+  },
+  {
+    "id": "tin_ore",
+    "name": "Min\u00e9rio de Tin",
+    "material": "stone",
+    "properties": {
+      "hardness": 3.0,
+      "resistance": 5.0,
+      "requires_tool": true,
+      "light_level": 0
+    },
+    "texture": {
+      "type": "base64",
+      "value": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAACj0lEQVR4nDWSzW7TSgCFx5Px2ONx6zh1Utf1IlVT5TXu5UcCHgBYAFvgDSp13yehBQlYAxvufY4qVdRWkZ36L864rt35MYuIszs639kcHe34+Liqqul0GscxxlgI8fLVawDA929flVJ5nh8dHc3nc0qplDIIAkgIQQi1bYsxZoxtaACAYRhd1xmGcX9/Tym1bZtSqpRCUsr9/f00TauqGo/HXz6fm6aZ5/loNNre3i6KIkmS8Xh8cXGh67oQApZlCQDgnIdheHV15TgOxphzvlqtbm5ugiDAGLdta9u2Uqrf7yPLshBCQoimaYIgWK/XUsrJZNI0TRiGURRhjBFCrus6jnN7e4uklJzz4XColCqKQimllJrP51JKz/Ns216tVq7rcs6zLNvd3YWU0rIsGWNFUdi2PRwOXdfd2dl5/+Fj27ZpmhJCLi8vNU2TUqZpih4eHnRdL8tyMBhkWYYxhhC+efsOAOA4ziaCEJqmaVlW13WoaRrXddu2ZYxNJpN//n20mfXXzx9KqbZthRCGYVRVVVXV4eEhCsPw+vpaCNHv99frNfirLMuUUk3T+L6f5zmEMAiC2WwGIYR7e3sYY8uyGGOfz882BUqpaZqEEMMwhBBFUSwWC0KIdnJy0uv1AAC9Xo8QEkUR53w6nSZJomma67qMsTRNEUIIIc/zUFmWGGPf9znnQoggCAzD2FwDIVTXdV3Xo9GIc44xXiwWiBCi67qUsus6CKFSijEWx7Hv+xtrmial9PGTpwCA87NPUAhR1/VyuUySJI7jqqqKogjDUNO0Z89fRFFkmmaSJACA///7PRgMtNPT07u7O8aY4zie5y2XS9/3AQCz2WxrawtjnOf5wcFBHMdN02ia9ge922srjAYWSgAAAABJRU5ErkJggg=="
+    }
+  },
+  {
+    "id": "silver_ore",
+    "name": "Min\u00e9rio de Silver",
+    "material": "stone",
+    "properties": {
+      "hardness": 3.0,
+      "resistance": 5.0,
+      "requires_tool": true,
+      "light_level": 0
+    },
+    "texture": {
+      "type": "base64",
+      "value": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAACiUlEQVR4nC2RuU7zSgCFZ8xMBntwvMV2COJPwlJTIGo6miAkJB6EV+B9kKigpOEF6FEKJPAW2zje4hk7nlvk1kf6znd04NPTU5Iks9msKIrBYFCWJefcdV0AACHk9/dXluW/v7/pdFoUxWq1kvI8t23b87yDg4OqqmRZ7vs+yzLOOed8MplsNpuTk5M8z+M4NgxDEkKEYWia5vf3t23bGOPhcAghlCTJ9/0gCMbjcVmWSZIcHR0hhBDnXNM0QshkMqnrOk3TpmlUVYUQHh8fl2W5t7fXtq3rur7vI4Sk/f19xtjl5WUURTvM+fn5zc1N0zQXFxdRFC2XSwCA7/sYY8uyJELI7e3t8/Pz3d2d4zgQQgjh6+vr9fU1AOD+/n42m+V5Pp1OF4tFkiSoLEsAwMPDAwAAYxyGIcZ4sVgAAAAAHx8fqqpSSq+urgAA//79Q2dnZ7vs7e3t8PCQEIIx/vz85JxnWTYajeI4zrLs/f296zpd1/9veHl5gRAGQaCqapqmQgiMcdd1GGPGmOM4u91CCPj4+GhZFkJICEEpraqqbVvTNPM8r6pKCKFpGmOs67qu68qyRH3fR1EkSVLf9xBCQoiiKEKIpmk0TSuKwvM8AIAsy7quj8djyXVdRVEopRDC6XS6uyyKIsdxOOcAgPl83ve9YRie5xVFgaIoMgyDUqrr+nq9ppRut9vNZrNcLufzOQAgyzLLstI0VRQFQiidnp7Wdc05D8OQMVYUha7rGGNCyNfX18/PjyzLAIC2bbfbLWMMxXGMEEIIjUajvu8ppavVijGmqqphGBjjpmk457Ztc867rpPqupZleacbBIEQoixL0zTX6zXnfDAYDIfDnW3btpTS/wDIIGxrTCi/TQAAAABJRU5ErkJggg=="
+    }
+  }
+]

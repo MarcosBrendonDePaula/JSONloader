@@ -394,6 +394,37 @@ public class JsonModLoader {
         String modName = metadata.name();
         
         try {
+            // Registra creative tabs personalizadas
+            if (metadata.creative_tabs() != null && !metadata.creative_tabs().isEmpty()) {
+                LOGGER.info("[Registro] Registrando {} abas criativas do mod {} ({})", 
+                    metadata.creative_tabs().size(), modName, modId);
+                
+                int registeredTabs = 0;
+                for (CreativeTabDefinition tabDef : metadata.creative_tabs()) {
+                    try {
+                        boolean success = com.jsonloader.loader.core.init.DynamicCreativeTabManager.registerCreativeTab(modId, tabDef);
+                        if (success) {
+                            registeredTabs++;
+                            LOGGER.info("[Registro] Aba criativa '{}' registrada com sucesso para o mod {}", 
+                                tabDef.id(), modId);
+                        } else {
+                            LOGGER.error("[ERRO] Falha ao registrar aba criativa '{}' para o mod {}", 
+                                tabDef.id(), modId);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("[ERRO] Falha ao registrar aba criativa '{}' para o mod {}: {}", 
+                            tabDef.id(), modId, e.getMessage());
+                    }
+                }
+                
+                // Registra todas as abas no EventBus
+                boolean tabsRegistered = com.jsonloader.loader.core.init.DynamicCreativeTabManager.registerModTabsToEventBus(
+                    modId, net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext.get().getModEventBus());
+                
+                LOGGER.info("[Registro] Registradas {} de {} abas criativas do mod {}", 
+                    registeredTabs, metadata.creative_tabs().size(), modId);
+            }
+            
             // Registra blocos
             if (!blocks.isEmpty()) {
                 LOGGER.info("[Registro] Registrando {} blocos do mod {} ({})", blocks.size(), modName, modId);
@@ -457,7 +488,8 @@ record ModMetadata(
     String author,
     String website,
     List<ModDependency> dependencies,
-    ModAssets assets
+    ModAssets assets,
+    List<CreativeTabDefinition> creative_tabs
 ) {}
 
 /**

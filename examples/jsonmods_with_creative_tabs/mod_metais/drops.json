@@ -1,0 +1,56 @@
+{
+  "block_drops": [
+    {
+      "block_id": "jsonloader:copper_ore",
+      "drops": [
+        {
+          "item_id": "jsonloader:copper_ingot",
+          "count_min": 1,
+          "count_max": 1,
+          "chance": 1.0,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": true,
+            "min_tool_tier": "stone",
+            "fortune_multiplier": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "block_id": "jsonloader:tin_ore",
+      "drops": [
+        {
+          "item_id": "jsonloader:tin_ingot",
+          "count_min": 1,
+          "count_max": 1,
+          "chance": 1.0,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": true,
+            "min_tool_tier": "stone",
+            "fortune_multiplier": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "block_id": "jsonloader:silver_ore",
+      "drops": [
+        {
+          "item_id": "jsonloader:silver_ingot",
+          "count_min": 1,
+          "count_max": 1,
+          "chance": 1.0,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": true,
+            "min_tool_tier": "stone",
+            "fortune_multiplier": 0.0
+          }
+        }
+      ]
+    }
+  ],
+  "mob_drops": []
+}
