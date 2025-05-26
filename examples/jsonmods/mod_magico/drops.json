@@ -1,0 +1,96 @@
+{
+  "block_drops": [
+    {
+      "block_id": "jsonloader:cristal_arcano",
+      "drops": [
+        {
+          "item_id": "jsonloader:po_magico",
+          "count_min": 1,
+          "count_max": 3,
+          "chance": 0.8,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": false,
+            "min_tool_tier": "",
+            "fortune_multiplier": 0.3,
+            "requires_player_kill": false,
+            "requires_fire_aspect": false,
+            "looting_multiplier": 0.0
+          }
+        },
+        {
+          "item_id": "jsonloader:cristal_arcano",
+          "count_min": 1,
+          "count_max": 1,
+          "chance": 1.0,
+          "conditions": {
+            "requires_silk_touch": true,
+            "requires_tool": false,
+            "min_tool_tier": "",
+            "fortune_multiplier": 0.0,
+            "requires_player_kill": false,
+            "requires_fire_aspect": false,
+            "looting_multiplier": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "block_id": "jsonloader:pedra_runica",
+      "drops": [
+        {
+          "item_id": "jsonloader:po_magico",
+          "count_min": 1,
+          "count_max": 2,
+          "chance": 0.5,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": true,
+            "min_tool_tier": "iron",
+            "fortune_multiplier": 0.2,
+            "requires_player_kill": false,
+            "requires_fire_aspect": false,
+            "looting_multiplier": 0.0
+          }
+        }
+      ]
+    }
+  ],
+  "mob_drops": [
+    {
+      "mob_id": "minecraft:witch",
+      "drops": [
+        {
+          "item_id": "jsonloader:varinha_magica",
+          "count_min": 0,
+          "count_max": 1,
+          "chance": 0.05,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": false,
+            "min_tool_tier": "",
+            "fortune_multiplier": 0.0,
+            "requires_player_kill": true,
+            "requires_fire_aspect": false,
+            "looting_multiplier": 0.2
+          }
+        },
+        {
+          "item_id": "jsonloader:po_magico",
+          "count_min": 1,
+          "count_max": 3,
+          "chance": 0.3,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": false,
+            "min_tool_tier": "",
+            "fortune_multiplier": 0.0,
+            "requires_player_kill": true,
+            "requires_fire_aspect": false,
+            "looting_multiplier": 0.1
+          }
+        }
+      ]
+    }
+  ]
+}

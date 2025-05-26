@@ -1,0 +1,77 @@
+[
+  {
+    "id": "varinha_magica",
+    "name": "Varinha Mágica",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 1,
+      "rarity": "epic"
+    },
+    "texture": {
+      "type": "url",
+      "value": "https://i.imgur.com/dZKuCmP.png"
+    }
+  },
+  {
+    "id": "po_magico",
+    "name": "Pó Mágico",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 64,
+      "rarity": "uncommon"
+    },
+    "texture": {
+      "type": "local",
+      "value": "magic_dust"
+    }
+  },
+  {
+    "id": "fruta_encantada",
+    "name": "Fruta Encantada",
+    "type": "food",
+    "properties": {
+      "max_stack_size": 16,
+      "food_properties": {
+        "nutrition": 6,
+        "saturation_modifier": 1.5,
+        "is_meat": false,
+        "can_always_eat": true,
+        "effects": [
+          {
+            "effect_id": "minecraft:regeneration",
+            "duration": 100,
+            "amplifier": 0,
+            "probability": 1.0
+          },
+          {
+            "effect_id": "minecraft:night_vision",
+            "duration": 300,
+            "amplifier": 0,
+            "probability": 0.5
+          }
+        ]
+      }
+    },
+    "texture": {
+      "type": "base64",
+      "value": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AkZCyoB7CrA7gAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAnklEQVQ4y92TMQ6DMAxFX6jKxNQDdGHhAL1Fj9WzdOIGvUJXJg7AQheQMBJLVZWqQwcGPMWx/T/bMZExhpRSUkpJKSXOOZxzGGMAMMagtcY5R2uN3vtfgNb6G1BrJedMzpkQAiEEcs6UUiilUEqhtUZrTYyRGOPzG977qwHnHCEEYoyUUmit3QHmef4GmKbpMcDHGEgpobV+7Yw/z/oFLHVumC8MHPAAAAAASUVORK5CYII="
+    }
+  },
+  {
+    "id": "cajado_arcano",
+    "name": "Cajado Arcano",
+    "type": "tool_sword",
+    "properties": {
+      "durability": 2000,
+      "tool_properties": {
+        "tier": "diamond",
+        "attack_damage_modifier": 4.0,
+        "attack_speed_modifier": -2.0
+      }
+    },
+    "texture": {
+      "type": "url",
+      "value": "https://i.imgur.com/JZzD2jJ.png"
+    }
+  }
+]

@@ -1,0 +1,67 @@
+[
+  {
+    "id": "copper_ingot",
+    "name": "Lingote de Copper",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 64,
+      "rarity": "common"
+    },
+    "texture": {
+      "type": "base64",
+      "value": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAO0lEQVR4nGNgGAWMyJwdxcb/NTQ08Gq4ceMGg0fvWbg+JkpdwILNBlIAxS4YeANIDgP0WKLYBaOAgQEAC8UMnBLipCgAAAAASUVORK5CYII="
+    }
+  },
+  {
+    "id": "tin_ingot",
+    "name": "Lingote de Tin",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 64,
+      "rarity": "common"
+    },
+    "texture": {
+      "type": "base64",
+      "value": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAO0lEQVR4nGNgGAUo4PKVq/9///mLF1++cvU/sh4mSi1lQRe4ceMGSQZQ7IKBN4DkMNDQ0KCuC0YBAwMAT30sKd5XbgsAAAAASUVORK5CYII="
+    }
+  },
+  {
+    "id": "bronze_ingot",
+    "name": "Lingote de Bronze",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 64,
+      "rarity": "common"
+    },
+    "texture": {
+      "type": "base64",
+      "value": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAO0lEQVR4nGNgGAWMyJyz9Ub/NTQ08Gq4ceMGg3HjObg+JkpdwILNBlIAxS4YeANIDgP0WKLYBaOAgQEAEMUMnDLxkm8AAAAASUVORK5CYII="
+    }
+  },
+  {
+    "id": "silver_ingot",
+    "name": "Lingote de Silver",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 64,
+      "rarity": "common"
+    },
+    "texture": {
+      "type": "base64",
+      "value": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAO0lEQVR4nGNgGAWMyJwDBw7819DQwKvhxo0bDA4ODnB9TJS6gAWbDaQAil0w8AaQHAbosUSxC0YBAwMALxUMnLVuUhQAAAAASUVORK5CYII="
+    }
+  },
+  {
+    "id": "steel_ingot",
+    "name": "Lingote de Steel",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 64,
+      "rarity": "common"
+    },
+    "texture": {
+      "type": "base64",
+      "value": "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAO0lEQVR4nGNgGAWMyJyGhob/GhoaeDXcuHGDoaGhAa6PiVIXsGCzgRRAsQsG3gCSwwA9lih2wShgYAAAERUMnBKg9ggAAAAASUVORK5CYII="
+    }
+  }
+]

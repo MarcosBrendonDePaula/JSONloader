@@ -1,0 +1,71 @@
+[
+  {
+    "id": "visor_holografico",
+    "name": "Visor Holográfico",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 1,
+      "rarity": "rare"
+    },
+    "texture": {
+      "type": "url",
+      "value": "https://i.imgur.com/dZKuCmP.png"
+    }
+  },
+  {
+    "id": "bateria_quantica",
+    "name": "Bateria Quântica",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 16,
+      "rarity": "epic"
+    },
+    "texture": {
+      "type": "local",
+      "value": "quantum_battery"
+    }
+  },
+  {
+    "id": "comida_sintetica",
+    "name": "Comida Sintética",
+    "type": "food",
+    "properties": {
+      "max_stack_size": 64,
+      "food_properties": {
+        "nutrition": 8,
+        "saturation_modifier": 1.8,
+        "is_meat": false,
+        "can_always_eat": true,
+        "effects": [
+          {
+            "effect_id": "minecraft:speed",
+            "duration": 200,
+            "amplifier": 1,
+            "probability": 1.0
+          }
+        ]
+      }
+    },
+    "texture": {
+      "type": "base64",
+      "value": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AkZCyoB7CrA7gAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAnklEQVQ4y92TMQ6DMAxFX6jKxNQDdGHhAL1Fj9WzdOIGvUJXJg7AQheQMBJLVZWqQwcGPMWx/T/bMZExhpRSUkpJKSXOOZxzGGMAMMagtcY5R2uN3vtfgNb6G1BrJedMzpkQAiEEcs6UUiilUEqhtUZrTYyRGOPzG977qwHnHCEEYoyUUmit3QHmef4GmKbpMcDHGEgpobV+7Yw/z/oFLHVumC8MHPAAAAAASUVORK5CYII="
+    }
+  },
+  {
+    "id": "laser_multifuncional",
+    "name": "Laser Multifuncional",
+    "type": "tool_sword",
+    "properties": {
+      "durability": 2500,
+      "tool_properties": {
+        "tier": "netherite",
+        "attack_damage_modifier": 5.0,
+        "attack_speed_modifier": -1.8
+      }
+    },
+    "texture": {
+      "type": "url",
+      "value": "https://i.imgur.com/JZzD2jJ.png"
+    }
+  }
+]

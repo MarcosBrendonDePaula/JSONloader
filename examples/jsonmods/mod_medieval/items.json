@@ -1,0 +1,51 @@
+[
+  {
+    "id": "armadura_medieval",
+    "name": "Armadura Medieval",
+    "type": "basic",
+    "properties": {
+      "max_stack_size": 1,
+      "rarity": "uncommon"
+    },
+    "texture": {
+      "type": "local",
+      "value": "medieval_armor"
+    }
+  },
+  {
+    "id": "pao_medieval",
+    "name": "Pão Medieval",
+    "type": "food",
+    "properties": {
+      "max_stack_size": 16,
+      "food_properties": {
+        "nutrition": 5,
+        "saturation_modifier": 1.0,
+        "is_meat": false,
+        "can_always_eat": false,
+        "effects": []
+      }
+    },
+    "texture": {
+      "type": "url",
+      "value": "https://i.imgur.com/QdFXUq3.png"
+    }
+  },
+  {
+    "id": "espada_cavaleiro",
+    "name": "Espada de Cavaleiro",
+    "type": "tool_sword",
+    "properties": {
+      "durability": 1200,
+      "tool_properties": {
+        "tier": "iron",
+        "attack_damage_modifier": 3.0,
+        "attack_speed_modifier": -2.4
+      }
+    },
+    "texture": {
+      "type": "base64",
+      "value": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AkZCyoB7CrA7gAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAnklEQVQ4y92TMQ6DMAxFX6jKxNQDdGHhAL1Fj9WzdOIGvUJXJg7AQheQMBJLVZWqQwcGPMWx/T/bMZExhpRSUkpJKSXOOZxzGGMAMMagtcY5R2uN3vtfgNb6G1BrJedMzpkQAiEEcs6UUiilUEqhtUZrTYyRGOPzG977qwHnHCEEYoyUUmit3QHmef4GmKbpMcDHGEgpobV+7Yw/z/oFLHVumC8MHPAAAAAASUVORK5CYII="
+    }
+  }
+]

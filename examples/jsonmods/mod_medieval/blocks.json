@@ -1,0 +1,47 @@
+[
+  {
+    "id": "espada_medieval",
+    "name": "Espada Medieval",
+    "material": "metal",
+    "properties": {
+      "hardness": 5.0,
+      "resistance": 6.0,
+      "requires_tool": true,
+      "light_level": 0
+    },
+    "texture": {
+      "type": "url",
+      "value": "https://i.imgur.com/JZzD2jJ.png"
+    }
+  },
+  {
+    "id": "pedra_castelo",
+    "name": "Pedra de Castelo",
+    "material": "stone",
+    "properties": {
+      "hardness": 3.0,
+      "resistance": 10.0,
+      "requires_tool": true,
+      "light_level": 0
+    },
+    "texture": {
+      "type": "local",
+      "value": "castle_stone"
+    }
+  },
+  {
+    "id": "tocha_medieval",
+    "name": "Tocha Medieval",
+    "material": "wood",
+    "properties": {
+      "hardness": 1.0,
+      "resistance": 1.0,
+      "requires_tool": false,
+      "light_level": 14
+    },
+    "texture": {
+      "type": "base64",
+      "value": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4AkZCyoB7CrA7gAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAAnklEQVQ4y92TMQ6DMAxFX6jKxNQDdGHhAL1Fj9WzdOIGvUJXJg7AQheQMBJLVZWqQwcGPMWx/T/bMZExhpRSUkpJKSXOOZxzGGMAMMagtcY5R2uN3vtfgNb6G1BrJedMzpkQAiEEcs6UUiilUEqhtUZrTYyRGOPzG977qwHnHCEEYoyUUmit3QHmef4GmKbpMcDHGEgpobV+7Yw/z/oFLHVumC8MHPAAAAAASUVORK5CYII="
+    }
+  }
+]
