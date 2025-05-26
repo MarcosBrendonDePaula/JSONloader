@@ -1,0 +1,13 @@
+{
+  "mod_id": "espadas",
+  "name": "Mod de Espadas",
+  "version": "1.0.0",
+  "description": "Adiciona 3 novas espadas mágicas ao jogo",
+  "author": "JSONloader Team",
+  "website": "https://github.com/MarcosBrendonDePaula/JSONloader",
+  "assets": {
+    "blocks_file": "blocks.json",
+    "items_file": "items.json",
+    "drops_file": "drops.json"
+  }
+}

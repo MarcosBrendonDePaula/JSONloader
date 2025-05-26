@@ -1,0 +1,13 @@
+{
+  "mod_id": "metais",
+  "name": "Mod de Metais",
+  "version": "1.0.0",
+  "description": "Adiciona novos tipos de metais e minérios ao jogo",
+  "author": "JSONloader Team",
+  "website": "https://github.com/MarcosBrendonDePaula/JSONloader",
+  "assets": {
+    "blocks_file": "blocks.json",
+    "items_file": "items.json",
+    "drops_file": "drops.json"
+  }
+}

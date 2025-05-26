@@ -1,0 +1,95 @@
+{
+  "block_drops": [
+    {
+      "block_id": "jsonloader:ruby_ore",
+      "drops": [
+        {
+          "item_id": "jsonloader:ruby",
+          "count_min": 1,
+          "count_max": 3,
+          "chance": 0.7,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": true,
+            "min_tool_tier": "iron",
+            "fortune_multiplier": 0.3,
+            "requires_player_kill": false
+          }
+        }
+      ]
+    },
+    {
+      "block_id": "jsonloader:sapphire_ore",
+      "drops": [
+        {
+          "item_id": "jsonloader:sapphire",
+          "count_min": 1,
+          "count_max": 3,
+          "chance": 0.7,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": true,
+            "min_tool_tier": "iron",
+            "fortune_multiplier": 0.3,
+            "requires_player_kill": false
+          }
+        }
+      ]
+    },
+    {
+      "block_id": "jsonloader:emerald_ore",
+      "drops": [
+        {
+          "item_id": "jsonloader:emerald",
+          "count_min": 1,
+          "count_max": 3,
+          "chance": 0.7,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": true,
+            "min_tool_tier": "iron",
+            "fortune_multiplier": 0.3,
+            "requires_player_kill": false
+          }
+        }
+      ]
+    },
+    {
+      "block_id": "jsonloader:amethyst_ore",
+      "drops": [
+        {
+          "item_id": "jsonloader:amethyst",
+          "count_min": 1,
+          "count_max": 3,
+          "chance": 0.7,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": true,
+            "min_tool_tier": "iron",
+            "fortune_multiplier": 0.3,
+            "requires_player_kill": false
+          }
+        }
+      ]
+    },
+    {
+      "block_id": "jsonloader:topaz_ore",
+      "drops": [
+        {
+          "item_id": "jsonloader:topaz",
+          "count_min": 1,
+          "count_max": 3,
+          "chance": 0.7,
+          "conditions": {
+            "requires_silk_touch": false,
+            "requires_tool": true,
+            "min_tool_tier": "iron",
+            "fortune_multiplier": 0.3,
+            "requires_player_kill": false
+          }
+        }
+      ]
+    }
+  ],
+  "mob_drops": []
+}

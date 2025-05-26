@@ -1,0 +1,50 @@
+{
+  "block_drops": [],
+  "mob_drops": [
+    {
+      "mob_id": "minecraft:wither_skeleton",
+      "drops": [
+        {
+          "item_id": "jsonloader:ruby_sword",
+          "count_min": 0,
+          "count_max": 1,
+          "chance": 0.02,
+          "conditions": {
+            "requires_player_kill": true,
+            "looting_multiplier": 0.01
+          }
+        }
+      ]
+    },
+    {
+      "mob_id": "minecraft:elder_guardian",
+      "drops": [
+        {
+          "item_id": "jsonloader:sapphire_sword",
+          "count_min": 0,
+          "count_max": 1,
+          "chance": 0.1,
+          "conditions": {
+            "requires_player_kill": true,
+            "looting_multiplier": 0.05
+          }
+        }
+      ]
+    },
+    {
+      "mob_id": "minecraft:evoker",
+      "drops": [
+        {
+          "item_id": "jsonloader:emerald_sword",
+          "count_min": 0,
+          "count_max": 1,
+          "chance": 0.05,
+          "conditions": {
+            "requires_player_kill": true,
+            "looting_multiplier": 0.02
+          }
+        }
+      ]
+    }
+  ]
+}
