@@ -5,6 +5,11 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
+# Adicionar permissões explícitas para o GITHUB_TOKEN
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
