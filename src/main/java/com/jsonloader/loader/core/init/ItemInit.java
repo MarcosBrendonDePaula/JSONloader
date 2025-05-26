@@ -110,7 +110,17 @@ public class ItemInit {
         Item.Properties properties = createItemProperties(definition);
         
         // Create the appropriate item type based on the definition
-        switch (definition.type().toLowerCase()) {
+        String type = definition.type() != null ? definition.type().toLowerCase() : "basic";
+        
+        // Verificar se as propriedades de ferramenta existem antes de criar ferramentas
+        if (definition.properties() == null || definition.properties().tool_properties() == null) {
+            // Se não tiver propriedades de ferramenta, criar item básico independente do tipo
+            LOGGER.warn("Item '{}' do tipo '{}' não possui propriedades de ferramenta definidas. Criando item básico.", 
+                definition.id(), type);
+            return new Item(properties);
+        }
+        
+        switch (type) {
             case "food":
                 return new Item(properties);
             case "tool_sword":
