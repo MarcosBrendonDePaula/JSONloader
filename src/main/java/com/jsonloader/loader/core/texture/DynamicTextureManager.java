@@ -3,6 +3,8 @@ package com.jsonloader.loader.core.texture;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.jsonloader.loader.JSONloader;
 import com.jsonloader.loader.core.loader.BlockDefinition;
+import com.jsonloader.loader.core.loader.ItemDefinition;
+import com.jsonloader.loader.core.loader.TextureDefinition;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -22,6 +24,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Gerenciador de texturas dinâmicas para o JSONloader.
+ * Esta classe é responsável por carregar e registrar texturas dinâmicas
+ * a partir de URLs ou strings Base64.
+ */
 public class DynamicTextureManager {
 
     private static final Logger LOGGER = LogManager.getLogger(JSONloader.MODID + " DynamicTextureManager");
@@ -29,15 +36,20 @@ public class DynamicTextureManager {
     private static final Map<String, ResourceLocation> textureCache = new ConcurrentHashMap<>();
 
     /**
-     * Processes all block definitions and registers dynamic textures for those
-     * specified as 'url' or 'base64'. This should be called during client setup.
+     * Processa todas as definições de blocos e registra texturas dinâmicas para aquelas
+     * especificadas como 'url' ou 'base64'. Este método deve ser chamado durante a configuração do cliente.
      *
-     * @param definitions List of block definitions loaded from JSON.
+     * @param definitions Lista de definições de blocos carregadas do JSON.
      */
     public static void registerDynamicTextures(List<BlockDefinition> definitions) {
         TextureManager textureManager = Minecraft.getInstance().getTextureManager();
 
         for (BlockDefinition def : definitions) {
+            if (def.texture() == null) {
+                LOGGER.warn("Bloco {} não possui textura definida", def.id());
+                continue;
+            }
+            
             String textureType = def.texture().type().toLowerCase();
             String textureValue = def.texture().value();
             String blockId = def.id();
@@ -71,7 +83,63 @@ public class DynamicTextureManager {
             }
         }
     }
+    
+    /**
+     * Processa todas as definições de itens e registra texturas dinâmicas para aquelas
+     * especificadas como 'url' ou 'base64'. Este método deve ser chamado durante a configuração do cliente.
+     *
+     * @param definitions Lista de definições de itens carregadas do JSON.
+     */
+    public static void registerDynamicItemTextures(List<ItemDefinition> definitions) {
+        TextureManager textureManager = Minecraft.getInstance().getTextureManager();
 
+        for (ItemDefinition def : definitions) {
+            if (def.texture() == null) {
+                LOGGER.warn("Item {} não possui textura definida", def.id());
+                continue;
+            }
+            
+            String textureType = def.texture().type().toLowerCase();
+            String textureValue = def.texture().value();
+            String itemId = def.id();
+            ResourceLocation textureLocation = new ResourceLocation(JSONloader.MODID, "item/" + itemId);
+
+            // Skip if already processed (e.g., during a reload)
+            if (textureCache.containsKey("item_" + itemId)) {
+                continue;
+            }
+
+            try {
+                NativeImage image = null;
+                if ("url".equals(textureType)) {
+                    LOGGER.info("Attempting to download texture for item '{}' from URL: {}", itemId, textureValue);
+                    image = downloadImage(textureValue);
+                } else if ("base64".equals(textureType)) {
+                    LOGGER.info("Attempting to decode Base64 texture for item '{}'", itemId);
+                    image = decodeBase64Image(textureValue);
+                }
+
+                if (image != null) {
+                    DynamicTexture dynamicTexture = new DynamicTexture(image);
+                    textureManager.register(textureLocation, dynamicTexture);
+                    textureCache.put("item_" + itemId, textureLocation);
+                    LOGGER.info("Successfully registered dynamic texture for item '{}' at {}", itemId, textureLocation);
+                } else if (!"local".equals(textureType)) {
+                    LOGGER.error("Failed to load dynamic texture for item '{}'. Type: {}, Value: {}", itemId, textureType, textureValue);
+                }
+            } catch (Exception e) {
+                LOGGER.error("Exception occurred while processing dynamic texture for item '{}'. Type: {}, Value: {}", itemId, textureType, textureValue, e);
+            }
+        }
+    }
+
+    /**
+     * Baixa uma imagem de uma URL e a converte para NativeImage.
+     * 
+     * @param urlString A URL da imagem
+     * @return A imagem baixada como NativeImage, ou null se ocorrer um erro
+     * @throws IOException Se ocorrer um erro ao baixar ou processar a imagem
+     */
     private static NativeImage downloadImage(String urlString) throws IOException {
         HttpURLConnection connection = null;
         InputStream inputStream = null;
@@ -107,8 +175,15 @@ public class DynamicTextureManager {
         }
     }
 
+    /**
+     * Decodifica uma imagem Base64 e a converte para NativeImage.
+     * 
+     * @param base64String A string Base64 da imagem
+     * @return A imagem decodificada como NativeImage, ou null se ocorrer um erro
+     * @throws IOException Se ocorrer um erro ao decodificar ou processar a imagem
+     */
     private static NativeImage decodeBase64Image(String base64String) throws IOException {
-        // Remove data URI prefix if present (e.g., 
+        // Remove data URI prefix if present (e.g., data:image/png;base64,)
         if (base64String.startsWith("data:image/")) {
             base64String = base64String.substring(base64String.indexOf(",") + 1);
         }
@@ -121,12 +196,12 @@ public class DynamicTextureManager {
     }
 
     /**
-     * Retrieves the ResourceLocation for a block's texture.
-     * For 'local' types, it returns the standard location.
-     * For 'url' or 'base64' types, it returns the cached dynamic texture location.
+     * Obtém a ResourceLocation para a textura de um bloco.
+     * Para tipos 'local', retorna a localização padrão.
+     * Para tipos 'url' ou 'base64', retorna a localização da textura dinâmica em cache.
      *
-     * @param definition The block definition.
-     * @return The appropriate ResourceLocation for the texture.
+     * @param definition A definição do bloco.
+     * @return A ResourceLocation apropriada para a textura.
      */
     public static ResourceLocation getTextureLocation(BlockDefinition definition) {
         String blockId = definition.id();
@@ -143,13 +218,37 @@ public class DynamicTextureManager {
             return new ResourceLocation(JSONloader.MODID, "block/" + textureName);
         }
     }
-
-     /**
-     * Generates the necessary blockstate, block model, and item model JSON content dynamically.
-     * This assumes a simple cube model for all dynamically textured blocks.
+    
+    /**
+     * Obtém a ResourceLocation para a textura de um item.
+     * Para tipos 'local', retorna a localização padrão.
+     * Para tipos 'url' ou 'base64', retorna a localização da textura dinâmica em cache.
      *
-     * @param definition The block definition.
-     * @return A map containing the JSON content for blockstate, block model, and item model.
+     * @param definition A definição do item.
+     * @return A ResourceLocation apropriada para a textura.
+     */
+    public static ResourceLocation getItemTextureLocation(ItemDefinition definition) {
+        String itemId = definition.id();
+        String textureType = definition.texture().type().toLowerCase();
+
+        if ("url".equals(textureType) || "base64".equals(textureType)) {
+            // Return cached location for dynamic textures
+            return textureCache.getOrDefault("item_" + itemId, 
+                // Fallback to a default missing texture if not found in cache (should not happen if registration is correct)
+                new ResourceLocation("minecraft", "textures/missing_no.png")); 
+        } else {
+            // Default behavior for 'local' textures
+            String textureName = definition.texture().value();
+            return new ResourceLocation(JSONloader.MODID, "item/" + textureName);
+        }
+    }
+
+    /**
+     * Gera o conteúdo JSON necessário para blockstate, modelo de bloco e modelo de item dinamicamente.
+     * Isso assume um modelo de cubo simples para todos os blocos com texturas dinâmicas.
+     *
+     * @param definition A definição do bloco.
+     * @return Um mapa contendo o conteúdo JSON para blockstate, modelo de bloco e modelo de item.
      */
     public static Map<String, String> generateDynamicBlockResources(BlockDefinition definition) {
         String blockId = definition.id();
@@ -166,5 +265,19 @@ public class DynamicTextureManager {
             "block_model", blockModelJson,
             "item_model", itemModelJson
         );
+    }
+    
+    /**
+     * Gera o conteúdo JSON necessário para o modelo de item dinamicamente.
+     *
+     * @param definition A definição do item.
+     * @return O conteúdo JSON para o modelo de item.
+     */
+    public static String generateDynamicItemModelJson(ItemDefinition definition) {
+        String itemId = definition.id();
+        // Use the item ID itself as the texture name within the dynamic registration
+        ResourceLocation textureLoc = new ResourceLocation(JSONloader.MODID, "item/" + itemId);
+
+        return String.format("{\"parent\": \"minecraft:item/generated\", \"textures\": {\"layer0\": \"%s\"}}", textureLoc.toString());
     }
 }

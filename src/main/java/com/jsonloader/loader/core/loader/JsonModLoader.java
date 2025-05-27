@@ -154,18 +154,27 @@ public class JsonModLoader {
                 if (success) {
                     // Adiciona o mod à lista de mods carregados
                     LoadedMod loadedMod = new LoadedMod(
-                        metadata.mod_id(),
-                        metadata.name(),
-                        metadata.version(),
-                        metadata.description(),
-                        metadata.author() != null ? metadata.author() : "Desconhecido",
-                        blocks.size(),
-                        items.size(),
-                        drops != null ? 
-                            (drops.block_drops() != null ? drops.block_drops().size() : 0) + 
-                            (drops.mob_drops() != null ? drops.mob_drops().size() : 0) : 0,
-                        modFolder.toString()
+                            modId,
+                            metadata.name(),
+                            metadata.version(),
+                            metadata.description(),
+                            metadata.author(),
+                            metadata.website(),
+                            blocks,
+                            items,
+                            drops
                     );
+                    loadedMods.add(loadedMod);
+                    
+                    // Processa as texturas do mod para o resource pack dinâmico
+                    try {
+                        DynamicResourcePackManager.processModTextures(loadedMod);
+                        LOGGER.info("[Mod] Texturas do mod {} processadas com sucesso", modId);
+                    } catch (Exception e) {
+                        LOGGER.error("[Mod] Erro ao processar texturas do mod {}: {}", modId, e.getMessage());
+                        LOGGER.debug("[Mod] Detalhes da exceção:", e);
+                    }
+                    
                     LOADED_MODS.add(loadedMod);
                     LOGGER.info("[Sucesso] Mod {} ({}) versão {} carregado com sucesso!", metadata.name(), metadata.mod_id(), metadata.version());
                     return true;

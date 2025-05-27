@@ -10,12 +10,15 @@ import com.jsonloader.loader.core.loader.JsonBlockLoader;
 import com.jsonloader.loader.core.loader.JsonItemLoader;
 import com.jsonloader.loader.core.loader.JsonDropsLoader;
 import com.jsonloader.loader.core.loader.JsonModLoader;
+import com.jsonloader.loader.core.loader.ItemDefinition;
 import com.jsonloader.loader.core.texture.DynamicTextureManager;
+import com.jsonloader.loader.core.texture.DynamicResourcePackManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.Commands;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -40,6 +43,10 @@ public class JSONloader { // Renamed class
     public JSONloader() { // Updated constructor name
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        // Inicializa o gerenciador de resource pack dinâmico
+        LOGGER.info("Inicializando gerenciador de resource pack dinâmico...");
+        DynamicResourcePackManager.initialize();
+        
         // Carregar mods externos ANTES do registro dos DeferredRegister
         LOGGER.info("Carregando mods externos durante a inicialização...");
         JsonModLoader.loadAllMods();
@@ -88,12 +95,6 @@ public class JSONloader { // Renamed class
             });
         }
     }
-
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {
-        LOGGER.info("HELLO from server starting for {}!", MODID);
-    }
     
     // Registrar comandos quando o servidor estiver pronto
     @SubscribeEvent
@@ -113,12 +114,21 @@ public class JSONloader { // Renamed class
             // --- Dynamic Texture Registration ---
             event.enqueueWork(() -> {
                 LOGGER.info("Enqueueing dynamic texture registration...");
-                List<BlockDefinition> definitions = JsonBlockLoader.loadBlockDefinitions();
-                if (!definitions.isEmpty()) {
-                    DynamicTextureManager.registerDynamicTextures(definitions);
-                    LOGGER.info("Dynamic texture registration task submitted.");
+                List<BlockDefinition> blockDefinitions = JsonBlockLoader.loadBlockDefinitions();
+                List<ItemDefinition> itemDefinitions = JsonItemLoader.loadItemDefinitions();
+                
+                if (!blockDefinitions.isEmpty()) {
+                    DynamicTextureManager.registerDynamicTextures(blockDefinitions);
+                    LOGGER.info("Dynamic block texture registration task submitted.");
                 } else {
                     LOGGER.warn("No block definitions loaded for dynamic texture registration.");
+                }
+                
+                if (!itemDefinitions.isEmpty()) {
+                    DynamicTextureManager.registerDynamicItemTextures(itemDefinitions);
+                    LOGGER.info("Dynamic item texture registration task submitted.");
+                } else {
+                    LOGGER.warn("No item definitions loaded for dynamic texture registration.");
                 }
             });
         }
