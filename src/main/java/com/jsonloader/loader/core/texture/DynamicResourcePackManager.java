@@ -393,32 +393,37 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
      * @param blockId O ID do bloco
      */
     private static void generateBlockModelFiles(String modId, String blockId) {
+        // Corrigido: Prefixo mod_id_ removido do blockId para evitar duplicação
+        String cleanBlockId = blockId.startsWith(modId + "_") ? blockId.substring(modId.length() + 1) : blockId;
+        
         // Gera o arquivo blockstate
-        String blockstatePath = "blockstates/" + blockId + ".json";
+        String blockstatePath = "blockstates/" + cleanBlockId + ".json";
         String blockstateJson = String.format(
             "{\"variants\":{\"\":{\"model\":\"%s:block/%s\"}}}",
-            modId, blockId
+            modId, cleanBlockId
         );
         addTextureToCache(modId, blockstatePath, blockstateJson.getBytes());
         saveTextureToFile(modId, blockstatePath, blockstateJson.getBytes());
         
         // Gera o arquivo de modelo do bloco
-        String blockModelPath = "models/block/" + blockId + ".json";
+        String blockModelPath = "models/block/" + cleanBlockId + ".json";
         String blockModelJson = String.format(
             "{\"parent\":\"minecraft:block/cube_all\",\"textures\":{\"all\":\"%s:block/%s\"}}",
-            modId, blockId
+            modId, cleanBlockId
         );
         addTextureToCache(modId, blockModelPath, blockModelJson.getBytes());
         saveTextureToFile(modId, blockModelPath, blockModelJson.getBytes());
         
         // Gera o arquivo de modelo do item do bloco
-        String itemModelPath = "models/item/" + blockId + ".json";
+        String itemModelPath = "models/item/" + cleanBlockId + ".json";
         String itemModelJson = String.format(
             "{\"parent\":\"%s:block/%s\"}",
-            modId, blockId
+            modId, cleanBlockId
         );
         addTextureToCache(modId, itemModelPath, itemModelJson.getBytes());
         saveTextureToFile(modId, itemModelPath, itemModelJson.getBytes());
+        
+        LOGGER.info("[ResourcePack] Arquivos de modelo e blockstate gerados para o bloco {}:{}", modId, cleanBlockId);
     }
 
     /**
@@ -427,13 +432,49 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
      * @param itemId O ID do item
      */
     private static void generateItemModelFile(String modId, String itemId) {
-        String itemModelPath = "models/item/" + itemId + ".json";
+        // Corrigido: Prefixo mod_id_ removido do itemId para evitar duplicação
+        String cleanItemId = itemId.startsWith(modId + "_") ? itemId.substring(modId.length() + 1) : itemId;
+        
+        String itemModelPath = "models/item/" + cleanItemId + ".json";
         String itemModelJson = String.format(
             "{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"%s:item/%s\"}}",
-            modId, itemId
+            modId, cleanItemId
         );
         addTextureToCache(modId, itemModelPath, itemModelJson.getBytes());
         saveTextureToFile(modId, itemModelPath, itemModelJson.getBytes());
+        
+        LOGGER.info("[ResourcePack] Arquivo de modelo gerado para o item {}:{}", modId, cleanItemId);
+    }
+
+    /**
+     * Limpa o cache de texturas e os arquivos temporários para um mod específico.
+     * Isso força a regeneração de todos os recursos na próxima vez que o mod for carregado.
+     * @param modId O ID do mod
+     */
+    public static void clearModResources(String modId) {
+        LOGGER.info("[ResourcePack] Limpando recursos do mod: {}", modId);
+        
+        // Remove do cache
+        TEXTURE_CACHE.remove(modId);
+        
+        // Remove os arquivos temporários
+        Path modPath = TEMP_DIR.resolve(modId);
+        if (Files.exists(modPath)) {
+            try {
+                Files.walk(modPath)
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (IOException e) {
+                            LOGGER.error("[ResourcePack] Erro ao excluir arquivo {}: {}", path, e.getMessage());
+                        }
+                    });
+                LOGGER.info("[ResourcePack] Recursos do mod {} limpos com sucesso", modId);
+            } catch (IOException e) {
+                LOGGER.error("[ResourcePack] Erro ao limpar recursos do mod {}: {}", modId, e.getMessage());
+            }
+        }
     }
 
     @Override
