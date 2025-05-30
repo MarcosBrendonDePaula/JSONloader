@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class CreativeTabInit {
     private static final Logger LOGGER = LogManager.getLogger(JSONloader.MODID + " CreativeTabInit");
@@ -34,7 +35,14 @@ public class CreativeTabInit {
                     .withTabsBefore(CreativeModeTabs.BUILDING_BLOCKS)
                     .displayItems((parameters, output) -> {
                         // Dynamically add all registered items from ItemInit
-                        ItemInit.ITEMS.getEntries().forEach(itemRegistryObject -> output.accept(itemRegistryObject.get()));
+                        ItemInit.ITEMS.getEntries().forEach(itemRegistryObject -> {
+                            try {
+                                output.accept(itemRegistryObject.get());
+                            } catch (Exception e) {
+                                LOGGER.error("Erro ao adicionar item {} à aba criativa: {}", 
+                                    itemRegistryObject.getId(), e.getMessage());
+                            }
+                        });
                     })
                     .build());
                     
@@ -55,34 +63,62 @@ public class CreativeTabInit {
             CreativeModeTab.Builder tabBuilder = CreativeModeTab.builder()
                 .title(Component.translatable("creativetab." + modId + "." + tabDefinition.id()))
                 .displayItems((parameters, output) -> {
-                    // Adicionar todos os itens do mod à aba
-                    ItemInit.getModItems(modId).forEach(output::accept);
+                    // Adicionar todos os itens do mod à aba com tratamento de exceção
+                    ItemInit.getModItems(modId).forEach(item -> {
+                        try {
+                            output.accept(item);
+                        } catch (Exception e) {
+                            LOGGER.error("Erro ao adicionar item à aba criativa {}: {}", tabId, e.getMessage());
+                        }
+                    });
                 });
             
-            // Configurar o ícone da aba
-            if (iconItemId != null && !iconItemId.isEmpty()) {
-                tabBuilder.icon(() -> {
-                    // Tentar encontrar o item pelo ID
-                    for (var entry : ItemInit.ITEMS.getEntries()) {
-                        if (entry.getId().toString().equals(modId + ":" + iconItemId) || 
-                            entry.getId().toString().equals(JSONloader.MODID + ":" + iconItemId)) {
-                            return new ItemStack(entry.get());
-                        }
+            // Configurar o ícone da aba com tratamento de segurança
+            tabBuilder.icon(() -> {
+                try {
+                    // Verificar se o iconItemId está definido
+                    if (iconItemId == null || iconItemId.isEmpty()) {
+                        LOGGER.warn("Ícone não especificado para a aba {}. Usando item padrão.", tabId);
+                        return new ItemStack(Items.BARRIER);
                     }
-                    // Fallback para um item padrão se o ícone não for encontrado
-                    LOGGER.warn("Ícone {} não encontrado para a aba {}. Usando item padrão.", iconItemId, tabId);
+                    
+                    // Prefixar com modId se necessário
+                    String fullIconId = iconItemId.contains(":") ? iconItemId : modId + ":" + iconItemId;
+                    
+                    // Procurar o item no registro
+                    Optional<RegistryObject<net.minecraft.world.item.Item>> iconItem = ItemInit.ITEMS.getEntries().stream()
+                        .filter(entry -> entry.getId().toString().equals(fullIconId) || 
+                                         entry.getId().toString().equals(JSONloader.MODID + ":" + iconItemId))
+                        .findFirst();
+                    
+                    if (iconItem.isPresent()) {
+                        try {
+                            return new ItemStack(iconItem.get().get());
+                        } catch (Exception e) {
+                            LOGGER.error("Erro ao obter item {} para ícone da aba {}: {}", 
+                                fullIconId, tabId, e.getMessage());
+                            return new ItemStack(Items.BARRIER);
+                        }
+                    } else {
+                        LOGGER.warn("Ícone {} não encontrado para a aba {}. Usando item padrão.", 
+                            fullIconId, tabId);
+                        return new ItemStack(Items.BARRIER);
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Erro ao configurar ícone para a aba {}: {}", tabId, e.getMessage());
                     return new ItemStack(Items.BARRIER);
-                });
-            } else {
-                // Ícone padrão se nenhum for especificado
-                tabBuilder.icon(() -> new ItemStack(Items.BARRIER));
-            }
+                }
+            });
             
             // Configurar posição da aba
-            if (tabDefinition.position_before() != null && !tabDefinition.position_before().isEmpty()) {
-                tabBuilder.withTabsBefore(net.minecraft.resources.ResourceLocation.parse(tabDefinition.position_before()));
-            } else if (tabDefinition.position_after() != null && !tabDefinition.position_after().isEmpty()) {
-                tabBuilder.withTabsAfter(net.minecraft.resources.ResourceLocation.parse(tabDefinition.position_after()));
+            try {
+                if (tabDefinition.position_before() != null && !tabDefinition.position_before().isEmpty()) {
+                    tabBuilder.withTabsBefore(net.minecraft.resources.ResourceLocation.parse(tabDefinition.position_before()));
+                } else if (tabDefinition.position_after() != null && !tabDefinition.position_after().isEmpty()) {
+                    tabBuilder.withTabsAfter(net.minecraft.resources.ResourceLocation.parse(tabDefinition.position_after()));
+                }
+            } catch (Exception e) {
+                LOGGER.error("Erro ao configurar posição da aba {}: {}", tabId, e.getMessage());
             }
             
             // Registrar a aba
