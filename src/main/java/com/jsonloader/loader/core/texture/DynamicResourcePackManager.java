@@ -76,7 +76,7 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
                     (packId) -> new DynamicPackResources(packId), // ResourcesSupplier
                     new Pack.Info(
                         net.minecraft.network.chat.Component.literal("JSONloader Dynamic Resources"),
-                        1,                                  // Format version
+                        9,                                  // Format version (9 para 1.20.1)
                         FeatureFlags.DEFAULT_FLAGS          // Feature flags (padrão)
                     ),
                     PackType.CLIENT_RESOURCES,              // Tipo do pack
@@ -109,7 +109,7 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
         public IoSupplier<InputStream> getRootResource(String... paths) {
             // Este método é chamado para recursos na raiz do pack, como pack.mcmeta
             if (paths.length == 1 && paths[0].equals("pack.mcmeta")) {
-                String packMeta = "{\"pack\":{\"description\":\"JSONloader Dynamic Resources\",\"pack_format\":15}}";
+                String packMeta = "{\"pack\":{\"description\":\"JSONloader Dynamic Resources\",\"pack_format\":9}}";
                 return () -> new ByteArrayInputStream(packMeta.getBytes());
             }
             return null;
@@ -266,35 +266,38 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
      * @param textureValue O valor da textura (base64, url, caminho local)
      */
     private static void processBlockTexture(String modId, String blockId, String textureType, String textureValue) {
+        // Corrigido: Remover prefixo do mod_id do blockId para evitar duplicação
+        String cleanBlockId = blockId.startsWith(modId + "_") ? blockId.substring(modId.length() + 1) : blockId;
+        
         if ("base64".equalsIgnoreCase(textureType)) {
             // Decodifica a textura Base64
             byte[] textureData = Base64.getDecoder().decode(textureValue);
             
             // Adiciona a textura ao cache
-            addTextureToCache(modId, "textures/block/" + blockId + ".png", textureData);
+            addTextureToCache(modId, "textures/block/" + cleanBlockId + ".png", textureData);
             
             // Salva a textura no sistema de arquivos temporário
-            saveTextureToFile(modId, "textures/block/" + blockId + ".png", textureData);
+            saveTextureToFile(modId, "textures/block/" + cleanBlockId + ".png", textureData);
             
             // Gera e adiciona os arquivos de modelo e blockstate
-            generateBlockModelFiles(modId, blockId);
+            generateBlockModelFiles(modId, cleanBlockId);
         } else if ("url".equalsIgnoreCase(textureType)) {
             // Baixa a textura da URL
             byte[] textureData = downloadTexture(textureValue);
             
             // Adiciona a textura ao cache
-            addTextureToCache(modId, "textures/block/" + blockId + ".png", textureData);
+            addTextureToCache(modId, "textures/block/" + cleanBlockId + ".png", textureData);
             
             // Salva a textura no sistema de arquivos temporário
-            saveTextureToFile(modId, "textures/block/" + blockId + ".png", textureData);
+            saveTextureToFile(modId, "textures/block/" + cleanBlockId + ".png", textureData);
             
             // Gera e adiciona os arquivos de modelo e blockstate
-            generateBlockModelFiles(modId, blockId);
+            generateBlockModelFiles(modId, cleanBlockId);
         } else if ("local".equalsIgnoreCase(textureType)) {
             // Não é necessário processar texturas locais, pois elas já estão no resource pack do mod
-            LOGGER.debug("[ResourcePack] Textura local para o bloco {}: {}", blockId, textureValue);
+            LOGGER.debug("[ResourcePack] Textura local para o bloco {}: {}", cleanBlockId, textureValue);
         } else {
-            LOGGER.warn("[ResourcePack] Tipo de textura desconhecido para o bloco {}: {}", blockId, textureType);
+            LOGGER.warn("[ResourcePack] Tipo de textura desconhecido para o bloco {}: {}", cleanBlockId, textureType);
         }
     }
 
@@ -306,35 +309,38 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
      * @param textureValue O valor da textura (base64, url, caminho local)
      */
     private static void processItemTexture(String modId, String itemId, String textureType, String textureValue) {
+        // Corrigido: Remover prefixo do mod_id do itemId para evitar duplicação
+        String cleanItemId = itemId.startsWith(modId + "_") ? itemId.substring(modId.length() + 1) : itemId;
+        
         if ("base64".equalsIgnoreCase(textureType)) {
             // Decodifica a textura Base64
             byte[] textureData = Base64.getDecoder().decode(textureValue);
             
             // Adiciona a textura ao cache
-            addTextureToCache(modId, "textures/item/" + itemId + ".png", textureData);
+            addTextureToCache(modId, "textures/item/" + cleanItemId + ".png", textureData);
             
             // Salva a textura no sistema de arquivos temporário
-            saveTextureToFile(modId, "textures/item/" + itemId + ".png", textureData);
+            saveTextureToFile(modId, "textures/item/" + cleanItemId + ".png", textureData);
             
             // Gera e adiciona o arquivo de modelo do item
-            generateItemModelFile(modId, itemId);
+            generateItemModelFile(modId, cleanItemId);
         } else if ("url".equalsIgnoreCase(textureType)) {
             // Baixa a textura da URL
             byte[] textureData = downloadTexture(textureValue);
             
             // Adiciona a textura ao cache
-            addTextureToCache(modId, "textures/item/" + itemId + ".png", textureData);
+            addTextureToCache(modId, "textures/item/" + cleanItemId + ".png", textureData);
             
             // Salva a textura no sistema de arquivos temporário
-            saveTextureToFile(modId, "textures/item/" + itemId + ".png", textureData);
+            saveTextureToFile(modId, "textures/item/" + cleanItemId + ".png", textureData);
             
             // Gera e adiciona o arquivo de modelo do item
-            generateItemModelFile(modId, itemId);
+            generateItemModelFile(modId, cleanItemId);
         } else if ("local".equalsIgnoreCase(textureType)) {
             // Não é necessário processar texturas locais, pois elas já estão no resource pack do mod
-            LOGGER.debug("[ResourcePack] Textura local para o item {}: {}", itemId, textureValue);
+            LOGGER.debug("[ResourcePack] Textura local para o item {}: {}", cleanItemId, textureValue);
         } else {
-            LOGGER.warn("[ResourcePack] Tipo de textura desconhecido para o item {}: {}", itemId, textureType);
+            LOGGER.warn("[ResourcePack] Tipo de textura desconhecido para o item {}: {}", cleanItemId, textureType);
         }
     }
 
@@ -390,60 +396,54 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
     /**
      * Gera os arquivos de modelo e blockstate para um bloco.
      * @param modId O ID do mod
-     * @param blockId O ID do bloco
+     * @param blockId O ID do bloco (já limpo, sem prefixo do mod)
      */
     private static void generateBlockModelFiles(String modId, String blockId) {
-        // Corrigido: Prefixo mod_id_ removido do blockId para evitar duplicação
-        String cleanBlockId = blockId.startsWith(modId + "_") ? blockId.substring(modId.length() + 1) : blockId;
-        
         // Gera o arquivo blockstate
-        String blockstatePath = "blockstates/" + cleanBlockId + ".json";
+        String blockstatePath = "blockstates/" + blockId + ".json";
         String blockstateJson = String.format(
             "{\"variants\":{\"\":{\"model\":\"%s:block/%s\"}}}",
-            modId, cleanBlockId
+            modId, blockId
         );
         addTextureToCache(modId, blockstatePath, blockstateJson.getBytes());
         saveTextureToFile(modId, blockstatePath, blockstateJson.getBytes());
         
         // Gera o arquivo de modelo do bloco
-        String blockModelPath = "models/block/" + cleanBlockId + ".json";
+        String blockModelPath = "models/block/" + blockId + ".json";
         String blockModelJson = String.format(
             "{\"parent\":\"minecraft:block/cube_all\",\"textures\":{\"all\":\"%s:block/%s\"}}",
-            modId, cleanBlockId
+            modId, blockId
         );
         addTextureToCache(modId, blockModelPath, blockModelJson.getBytes());
         saveTextureToFile(modId, blockModelPath, blockModelJson.getBytes());
         
         // Gera o arquivo de modelo do item do bloco
-        String itemModelPath = "models/item/" + cleanBlockId + ".json";
+        String itemModelPath = "models/item/" + blockId + ".json";
         String itemModelJson = String.format(
             "{\"parent\":\"%s:block/%s\"}",
-            modId, cleanBlockId
+            modId, blockId
         );
         addTextureToCache(modId, itemModelPath, itemModelJson.getBytes());
         saveTextureToFile(modId, itemModelPath, itemModelJson.getBytes());
         
-        LOGGER.info("[ResourcePack] Arquivos de modelo e blockstate gerados para o bloco {}:{}", modId, cleanBlockId);
+        LOGGER.info("[ResourcePack] Arquivos de modelo e blockstate gerados para o bloco {}:{}", modId, blockId);
     }
 
     /**
      * Gera o arquivo de modelo para um item.
      * @param modId O ID do mod
-     * @param itemId O ID do item
+     * @param itemId O ID do item (já limpo, sem prefixo do mod)
      */
     private static void generateItemModelFile(String modId, String itemId) {
-        // Corrigido: Prefixo mod_id_ removido do itemId para evitar duplicação
-        String cleanItemId = itemId.startsWith(modId + "_") ? itemId.substring(modId.length() + 1) : itemId;
-        
-        String itemModelPath = "models/item/" + cleanItemId + ".json";
+        String itemModelPath = "models/item/" + itemId + ".json";
         String itemModelJson = String.format(
             "{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"%s:item/%s\"}}",
-            modId, cleanItemId
+            modId, itemId
         );
         addTextureToCache(modId, itemModelPath, itemModelJson.getBytes());
         saveTextureToFile(modId, itemModelPath, itemModelJson.getBytes());
         
-        LOGGER.info("[ResourcePack] Arquivo de modelo gerado para o item {}:{}", modId, cleanItemId);
+        LOGGER.info("[ResourcePack] Arquivo de modelo gerado para o item {}:{}", modId, itemId);
     }
 
     /**
@@ -473,6 +473,35 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
                 LOGGER.info("[ResourcePack] Recursos do mod {} limpos com sucesso", modId);
             } catch (IOException e) {
                 LOGGER.error("[ResourcePack] Erro ao limpar recursos do mod {}: {}", modId, e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Limpa todos os recursos de todos os mods.
+     * Isso força a regeneração de todos os recursos na próxima vez que os mods forem carregados.
+     */
+    public static void clearAllResources() {
+        LOGGER.info("[ResourcePack] Limpando todos os recursos");
+        
+        // Limpa o cache
+        TEXTURE_CACHE.clear();
+        
+        // Remove todos os arquivos temporários
+        if (Files.exists(TEMP_DIR)) {
+            try {
+                Files.walk(TEMP_DIR)
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (IOException e) {
+                            LOGGER.error("[ResourcePack] Erro ao excluir arquivo {}: {}", path, e.getMessage());
+                        }
+                    });
+                LOGGER.info("[ResourcePack] Todos os recursos limpos com sucesso");
+            } catch (IOException e) {
+                LOGGER.error("[ResourcePack] Erro ao limpar todos os recursos: {}", e.getMessage());
             }
         }
     }
