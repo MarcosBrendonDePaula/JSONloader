@@ -87,6 +87,33 @@ public class BlockInit {
         return successCount;
     }
 
+    /**
+     * Registra um bloco dinâmico a partir de uma definição JSON.
+     * @param modId ID do mod
+     * @param definition Definição do bloco
+     * @return RegistryObject do bloco registrado, ou null se falhar
+     */
+    public static RegistryObject<Block> registerDynamicBlock(String modId, BlockDefinition definition) {
+        try {
+            // Prefixar o ID do bloco com o ID do mod para evitar conflitos
+            String blockId = modId + "_" + definition.id();
+            
+            // Criar propriedades do bloco
+            BlockBehaviour.Properties properties = createBlockProperties(definition);
+            
+            // Registrar o bloco e seu item correspondente
+            Supplier<Block> blockSupplier = () -> new Block(properties);
+            RegistryObject<Block> blockObject = BLOCKS.register(blockId, blockSupplier);
+            ITEMS.register(blockId, () -> new BlockItem(blockObject.get(), new Item.Properties()));
+            
+            LOGGER.debug("Bloco dinâmico registrado com sucesso: {}", blockId);
+            return blockObject;
+        } catch (Exception e) {
+            LOGGER.error("Falha ao registrar bloco dinâmico {} do mod {}: {}", definition.id(), modId, e.getMessage());
+            return null;
+        }
+    }
+
     // Helper method to create BlockBehaviour.Properties based on JSON definition
     private static BlockBehaviour.Properties createBlockProperties(BlockDefinition definition) {
         BlockBehaviour.Properties properties;
@@ -133,4 +160,3 @@ public class BlockInit {
         return blockObject;
     }
 }
-

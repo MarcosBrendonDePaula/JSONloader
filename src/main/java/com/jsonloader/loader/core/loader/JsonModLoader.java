@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.jsonloader.loader.JSONloader;
+import com.jsonloader.loader.core.texture.DynamicResourcePackManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -154,7 +155,7 @@ public class JsonModLoader {
                 if (success) {
                     // Adiciona o mod à lista de mods carregados
                     LoadedMod loadedMod = new LoadedMod(
-                            modId,
+                            metadata.mod_id(),
                             metadata.name(),
                             metadata.version(),
                             metadata.description(),
@@ -164,14 +165,13 @@ public class JsonModLoader {
                             items,
                             drops
                     );
-                    loadedMods.add(loadedMod);
                     
                     // Processa as texturas do mod para o resource pack dinâmico
                     try {
                         DynamicResourcePackManager.processModTextures(loadedMod);
-                        LOGGER.info("[Mod] Texturas do mod {} processadas com sucesso", modId);
+                        LOGGER.info("[Mod] Texturas do mod {} processadas com sucesso", metadata.mod_id());
                     } catch (Exception e) {
-                        LOGGER.error("[Mod] Erro ao processar texturas do mod {}: {}", modId, e.getMessage());
+                        LOGGER.error("[Mod] Erro ao processar texturas do mod {}: {}", metadata.mod_id(), e.getMessage());
                         LOGGER.debug("[Mod] Detalhes da exceção:", e);
                     }
                     
@@ -191,7 +191,11 @@ public class JsonModLoader {
                     metadata.version(),
                     metadata.description(),
                     metadata.author() != null ? metadata.author() : "Desconhecido",
-                    0, 0, 0,
+                    metadata.website(),
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    new DropsDefinition(Collections.emptyList(), Collections.emptyList()),
+                    0,
                     modFolder.toString()
                 );
                 LOADED_MODS.add(loadedMod);
@@ -363,8 +367,7 @@ public class JsonModLoader {
      */
     private static DropsDefinition loadDropsFromInputStream(InputStream inputStream, String modId) {
         try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
-            Type type = new TypeToken<DropsDefinition>() {}.getType();
-            DropsDefinition definition = GSON.fromJson(reader, type);
+            DropsDefinition definition = GSON.fromJson(reader, DropsDefinition.class);
             
             if (definition == null) {
                 LOGGER.error("Falha ao analisar drops.json do mod {}. GSON retornou null.", modId);
@@ -374,18 +377,8 @@ public class JsonModLoader {
             int blockDropsCount = definition.block_drops() != null ? definition.block_drops().size() : 0;
             int mobDropsCount = definition.mob_drops() != null ? definition.mob_drops().size() : 0;
             
-            LOGGER.info("Carregadas com sucesso definições de drops do mod {}: {} drops de blocos e {} drops de mobs.", 
-                        modId, blockDropsCount, mobDropsCount);
-            
-            if (definition.block_drops() != null) {
-                definition.block_drops().forEach(blockDrop -> 
-                    LOGGER.debug("Carregada definição de drop para bloco ID: {}", blockDrop.block_id()));
-            }
-            
-            if (definition.mob_drops() != null) {
-                definition.mob_drops().forEach(mobDrop -> 
-                    LOGGER.debug("Carregada definição de drop para mob ID: {}", mobDrop.mob_id()));
-            }
+            LOGGER.info("Carregados com sucesso {} definições de drops de blocos e {} definições de drops de mobs do mod {}.", 
+                blockDropsCount, mobDropsCount, modId);
             
             return definition;
         } catch (Exception e) {
@@ -395,125 +388,84 @@ public class JsonModLoader {
     }
     
     /**
-     * Registra o conteúdo de um mod no sistema.
-     * @return true se o registro foi bem-sucedido, false caso contrário
+     * Registra o conteúdo de um mod (blocos, itens, drops).
      */
     private static boolean registerModContent(ModMetadata metadata, List<BlockDefinition> blocks, List<ItemDefinition> items, DropsDefinition drops) {
-        String modId = metadata.mod_id();
-        String modName = metadata.name();
-        
         try {
-            // Registra creative tabs personalizadas
-            if (metadata.creative_tabs() != null && !metadata.creative_tabs().isEmpty()) {
-                LOGGER.info("[Registro] Registrando {} abas criativas do mod {} ({})", 
-                    metadata.creative_tabs().size(), modName, modId);
-                
-                int registeredTabs = 0;
-                for (CreativeTabDefinition tabDef : metadata.creative_tabs()) {
-                    try {
-                        boolean success = com.jsonloader.loader.core.init.DynamicCreativeTabManager.registerCreativeTab(modId, tabDef);
-                        if (success) {
-                            registeredTabs++;
-                            LOGGER.info("[Registro] Aba criativa '{}' registrada com sucesso para o mod {}", 
-                                tabDef.id(), modId);
-                        } else {
-                            LOGGER.error("[ERRO] Falha ao registrar aba criativa '{}' para o mod {}", 
-                                tabDef.id(), modId);
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("[ERRO] Falha ao registrar aba criativa '{}' para o mod {}: {}", 
-                            tabDef.id(), modId, e.getMessage());
+            // Registra os blocos
+            if (!blocks.isEmpty()) {
+                LOGGER.info("[Registro] Registrando {} blocos para o mod {}", blocks.size(), metadata.mod_id());
+                for (BlockDefinition block : blocks) {
+                    LOGGER.debug("[Registro] Registrando bloco: {}", block.id());
+                    // Registra o bloco usando o BlockInit
+                    net.minecraftforge.registries.RegistryObject<?> registeredBlock = 
+                        com.jsonloader.loader.core.init.BlockInit.registerDynamicBlock(
+                            metadata.mod_id(), block);
+                    
+                    if (registeredBlock == null) {
+                        LOGGER.error("[ERRO] Falha ao registrar bloco: {}", block.id());
+                        return false;
                     }
                 }
-                
-                // Registra todas as abas no EventBus
-                boolean tabsRegistered = com.jsonloader.loader.core.init.DynamicCreativeTabManager.registerModTabsToEventBus(
-                    modId, net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext.get().getModEventBus());
-                
-                LOGGER.info("[Registro] Registradas {} de {} abas criativas do mod {}", 
-                    registeredTabs, metadata.creative_tabs().size(), modId);
             }
             
-            // Registra blocos
-            if (!blocks.isEmpty()) {
-                LOGGER.info("[Registro] Registrando {} blocos do mod {} ({})", blocks.size(), modName, modId);
-                // Chamamos o método que registra os blocos no Minecraft
-                int registeredBlocks = com.jsonloader.loader.core.init.BlockInit.registerBlocks(blocks, modId);
-                LOGGER.info("[Registro] Registrados {} de {} blocos do mod {}", registeredBlocks, blocks.size(), modId);
-                
-                if (registeredBlocks < blocks.size()) {
-                    LOGGER.warn("[Aviso] Alguns blocos do mod {} não puderam ser registrados ({} de {})", 
-                        modId, blocks.size() - registeredBlocks, blocks.size());
-                }
-            }
-            
-            // Registra itens
+            // Registra os itens
             if (!items.isEmpty()) {
-                LOGGER.info("[Registro] Registrando {} itens do mod {} ({})", items.size(), modName, modId);
-                // Chamamos o método que registra os itens no Minecraft
-                int registeredItems = com.jsonloader.loader.core.init.ItemInit.registerItems(items, modId);
-                LOGGER.info("[Registro] Registrados {} de {} itens do mod {}", registeredItems, items.size(), modId);
-                
-                if (registeredItems < items.size()) {
-                    LOGGER.warn("[Aviso] Alguns itens do mod {} não puderam ser registrados ({} de {})", 
-                        modId, items.size() - registeredItems, items.size());
+                LOGGER.info("[Registro] Registrando {} itens para o mod {}", items.size(), metadata.mod_id());
+                for (ItemDefinition item : items) {
+                    LOGGER.debug("[Registro] Registrando item: {}", item.id());
+                    // Registra o item usando o ItemInit
+                    net.minecraftforge.registries.RegistryObject<?> registeredItem = 
+                        com.jsonloader.loader.core.init.ItemInit.registerDynamicItem(
+                            metadata.mod_id(), item);
+                    
+                    if (registeredItem == null) {
+                        LOGGER.error("[ERRO] Falha ao registrar item: {}", item.id());
+                        return false;
+                    }
                 }
             }
             
-            // Registra drops
-            if (drops != null && 
-                ((drops.block_drops() != null && !drops.block_drops().isEmpty()) || 
-                 (drops.mob_drops() != null && !drops.mob_drops().isEmpty()))) {
-                LOGGER.info("[Registro] Registrando drops do mod {} ({})", modName, modId);
-                // Aqui registramos os drops no sistema
-                // Por enquanto, apenas logamos que foram carregados
-                // TODO: Implementar registro de drops quando o sistema de drops estiver pronto
-                int blockDropsCount = drops.block_drops() != null ? drops.block_drops().size() : 0;
-                int mobDropsCount = drops.mob_drops() != null ? drops.mob_drops().size() : 0;
-                LOGGER.info("[Registro] Carregados {} drops de blocos e {} drops de mobs do mod {}", 
-                    blockDropsCount, mobDropsCount, modId);
+            // Registra os drops
+            if (drops != null && ((drops.block_drops() != null && !drops.block_drops().isEmpty()) || 
+                                 (drops.mob_drops() != null && !drops.mob_drops().isEmpty()))) {
+                LOGGER.info("[Registro] Registrando drops para o mod {}", metadata.mod_id());
+                // Registra os drops usando o DropsInit ou similar
+                // TODO: Implementar registro de drops
             }
+            
+            // Registra as abas criativas personalizadas
+            if (metadata.creative_tabs() != null && !metadata.creative_tabs().isEmpty()) {
+                LOGGER.info("[Registro] Registrando {} abas criativas para o mod {}", 
+                    metadata.creative_tabs().size(), metadata.mod_id());
+                
+                for (CreativeTabDefinition tab : metadata.creative_tabs()) {
+                    LOGGER.debug("[Registro] Registrando aba criativa: {}", tab.id());
+                    // Registra a aba criativa usando o CreativeTabInit
+                    boolean success = com.jsonloader.loader.core.init.CreativeTabInit.registerDynamicCreativeTab(
+                        tab, metadata.mod_id());
+                    
+                    if (!success) {
+                        LOGGER.error("[ERRO] Falha ao registrar aba criativa: {}", tab.id());
+                        // Não retornamos false aqui, pois falhas em abas criativas não são críticas
+                    }
+                }
+            }
+            
+            // Registra o mod no sistema de eventos do Forge
+            LOGGER.info("[Registro] Registrando mod {} no sistema de eventos do Forge", metadata.mod_id());
+            net.minecraftforge.eventbus.api.IEventBus modEventBus = 
+                net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext.get().getModEventBus();
+            
+            com.jsonloader.loader.core.init.DynamicCreativeTabManager.registerModItems(
+                    metadata.mod_id(), modEventBus);
             
             return true;
         } catch (Exception e) {
-            LOGGER.error("[ERRO CRÍTICO] Falha ao registrar conteúdo do mod {} ({}): {}", 
-                modName, modId, e.getMessage());
+            LOGGER.error("[ERRO CRÍTICO] Exceção ao registrar conteúdo do mod {}: {}", 
+                metadata.mod_id(), e.getMessage());
             LOGGER.error("Detalhes da exceção:", e);
             return false;
         }
     }
 }
-
-// LoadedMod foi movido para seu próprio arquivo
-
-/**
- * Classe que representa os metadados de um mod.
- */
-record ModMetadata(
-    String mod_id,
-    String name,
-    String version,
-    String description,
-    String author,
-    String website,
-    List<ModDependency> dependencies,
-    ModAssets assets,
-    List<CreativeTabDefinition> creative_tabs
-) {}
-
-/**
- * Classe que representa uma dependência de mod.
- */
-record ModDependency(
-    String mod_id,
-    String version_required
-) {}
-
-/**
- * Classe que representa a configuração de arquivos de recursos.
- */
-record ModAssets(
-    String blocks_file,
-    String items_file,
-    String drops_file
-) {}

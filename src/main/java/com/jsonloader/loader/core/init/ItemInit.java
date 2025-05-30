@@ -99,6 +99,29 @@ public class ItemInit {
         return successCount;
     }
 
+    /**
+     * Registra um item dinâmico a partir de uma definição JSON.
+     * @param modId ID do mod
+     * @param definition Definição do item
+     * @return RegistryObject do item registrado, ou null se falhar
+     */
+    public static RegistryObject<Item> registerDynamicItem(String modId, ItemDefinition definition) {
+        try {
+            // Prefixar o ID do item com o ID do mod para evitar conflitos
+            String itemId = modId + "_" + definition.id();
+            
+            // Criar o item baseado na definição
+            Supplier<Item> itemSupplier = () -> createItemFromDefinition(definition);
+            RegistryObject<Item> itemObject = ITEMS.register(itemId, itemSupplier);
+            
+            LOGGER.debug("Item dinâmico registrado com sucesso: {}", itemId);
+            return itemObject;
+        } catch (Exception e) {
+            LOGGER.error("Falha ao registrar item dinâmico {} do mod {}: {}", definition.id(), modId, e.getMessage());
+            return null;
+        }
+    }
+
     // Helper method to register an item based on JSON definition
     private static RegistryObject<Item> registerItemFromJson(ItemDefinition definition) {
         Supplier<Item> itemSupplier = () -> createItemFromDefinition(definition);

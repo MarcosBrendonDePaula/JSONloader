@@ -53,7 +53,7 @@ public class DynamicTextureManager {
             String textureType = def.texture().type().toLowerCase();
             String textureValue = def.texture().value();
             String blockId = def.id();
-            ResourceLocation textureLocation = new ResourceLocation(JSONloader.MODID, "block/" + blockId);
+            ResourceLocation textureLocation = ResourceLocation.parse(JSONloader.MODID + ":block/" + blockId);
 
             // Skip if already processed (e.g., during a reload)
             if (textureCache.containsKey(blockId)) {
@@ -102,7 +102,7 @@ public class DynamicTextureManager {
             String textureType = def.texture().type().toLowerCase();
             String textureValue = def.texture().value();
             String itemId = def.id();
-            ResourceLocation textureLocation = new ResourceLocation(JSONloader.MODID, "item/" + itemId);
+            ResourceLocation textureLocation = ResourceLocation.parse(JSONloader.MODID + ":item/" + itemId);
 
             // Skip if already processed (e.g., during a reload)
             if (textureCache.containsKey("item_" + itemId)) {
@@ -211,11 +211,11 @@ public class DynamicTextureManager {
             // Return cached location for dynamic textures
             return textureCache.getOrDefault(blockId, 
                 // Fallback to a default missing texture if not found in cache (should not happen if registration is correct)
-                new ResourceLocation("minecraft", "textures/missing_no.png")); 
+                ResourceLocation.parse("minecraft:textures/missing_no.png")); 
         } else {
             // Default behavior for 'local' textures
             String textureName = definition.texture().value();
-            return new ResourceLocation(JSONloader.MODID, "block/" + textureName);
+            return ResourceLocation.parse(JSONloader.MODID + ":block/" + textureName);
         }
     }
     
@@ -235,11 +235,11 @@ public class DynamicTextureManager {
             // Return cached location for dynamic textures
             return textureCache.getOrDefault("item_" + itemId, 
                 // Fallback to a default missing texture if not found in cache (should not happen if registration is correct)
-                new ResourceLocation("minecraft", "textures/missing_no.png")); 
+                ResourceLocation.parse("minecraft:textures/missing_no.png")); 
         } else {
             // Default behavior for 'local' textures
             String textureName = definition.texture().value();
-            return new ResourceLocation(JSONloader.MODID, "item/" + textureName);
+            return ResourceLocation.parse(JSONloader.MODID + ":item/" + textureName);
         }
     }
 
@@ -253,7 +253,7 @@ public class DynamicTextureManager {
     public static Map<String, String> generateDynamicBlockResources(BlockDefinition definition) {
         String blockId = definition.id();
         // Use the block ID itself as the texture name within the dynamic registration
-        ResourceLocation textureLoc = new ResourceLocation(JSONloader.MODID, "block/" + blockId);
+        ResourceLocation textureLoc = ResourceLocation.parse(JSONloader.MODID + ":block/" + blockId);
 
         String blockstateJson = String.format("{\"variants\": {\"\": { \"model\": \"%s:block/%s\" }}}", JSONloader.MODID, blockId);
         // Use minecraft:block/cube_all as parent, but override the 'all' texture
@@ -276,7 +276,7 @@ public class DynamicTextureManager {
     public static String generateDynamicItemModelJson(ItemDefinition definition) {
         String itemId = definition.id();
         // Use the item ID itself as the texture name within the dynamic registration
-        ResourceLocation textureLoc = new ResourceLocation(JSONloader.MODID, "item/" + itemId);
+        ResourceLocation textureLoc = ResourceLocation.parse(JSONloader.MODID + ":item/" + itemId);
 
         return String.format("{\"parent\": \"minecraft:item/generated\", \"textures\": {\"layer0\": \"%s\"}}", textureLoc.toString());
     }

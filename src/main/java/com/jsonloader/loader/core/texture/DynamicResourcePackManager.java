@@ -12,6 +12,7 @@ import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.IoSupplier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraftforge.event.AddPackFindersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -21,13 +22,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * Gerenciador de resource packs dinâmicos para texturas de mods JSON.
@@ -72,11 +73,11 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
                     PACK_ID,                                // ID do pack
                     net.minecraft.network.chat.Component.literal("JSONloader Dynamic Resources"), // Nome visível
                     true,                                   // Required (obrigatório)
-                    createPackResources(),                  // Supplier do PackResources
+                    (packId) -> new DynamicPackResources(packId), // ResourcesSupplier
                     new Pack.Info(
                         net.minecraft.network.chat.Component.literal("JSONloader Dynamic Resources"),
                         1,                                  // Format version
-                        net.minecraft.network.chat.Component.literal("Texturas dinâmicas para mods JSON")
+                        FeatureFlags.DEFAULT_FLAGS          // Feature flags (padrão)
                     ),
                     PackType.CLIENT_RESOURCES,              // Tipo do pack
                     Pack.Position.TOP,                      // Posição na lista
@@ -95,194 +96,125 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
     }
 
     /**
-     * Cria o supplier de PackResources para o resource pack dinâmico.
-     * @return Um supplier que fornece o PackResources do resource pack dinâmico
+     * Implementação de PackResources para o resource pack dinâmico.
      */
-    private static Supplier<PackResources> createPackResources() {
-        return () -> new AbstractPackResources(PACK_ID) {
-            @Override
-            protected IoSupplier<InputStream> getResource(String resourcePath) {
-                // Extrai o namespace e o caminho relativo
-                String[] parts = resourcePath.split("/", 2);
-                if (parts.length != 2) {
-                    return null;
-                }
-                
-                String namespace = parts[0];
-                String path = parts[1];
-                
-                // Verifica se a textura está no cache
-                if (TEXTURE_CACHE.containsKey(namespace) && TEXTURE_CACHE.get(namespace).containsKey(path)) {
-                    byte[] data = TEXTURE_CACHE.get(namespace).get(path);
-                    return () -> new ByteArrayInputStream(data);
-                }
-                
-                // Tenta carregar do sistema de arquivos temporário
-                Path filePath = TEMP_DIR.resolve(namespace).resolve(path);
-                if (Files.exists(filePath)) {
-                    try {
-                        return () -> Files.newInputStream(filePath);
-                    } catch (IOException e) {
-                        LOGGER.error("[ResourcePack] Erro ao abrir arquivo {}: {}", filePath, e.getMessage());
-                        return null;
-                    }
-                }
-                
+    private static class DynamicPackResources extends AbstractPackResources {
+        
+        public DynamicPackResources(String packId) {
+            super(packId, true); // true = é um pack obrigatório
+        }
+        
+        @Nullable
+        @Override
+        public IoSupplier<InputStream> getRootResource(String... paths) {
+            // Este método é chamado para recursos na raiz do pack, como pack.mcmeta
+            if (paths.length == 1 && paths[0].equals("pack.mcmeta")) {
+                String packMeta = "{\"pack\":{\"description\":\"JSONloader Dynamic Resources\",\"pack_format\":15}}";
+                return () -> new ByteArrayInputStream(packMeta.getBytes());
+            }
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public IoSupplier<InputStream> getResource(PackType packType, ResourceLocation location) {
+            if (packType != PackType.CLIENT_RESOURCES) {
                 return null;
             }
-
-            @Override
-            public void listResources(PackType packType, String namespace, String path, ResourceOutput resourceOutput) {
-                if (packType != PackType.CLIENT_RESOURCES) {
-                    return;
-                }
-                
-                // Lista recursos do cache
-                if (TEXTURE_CACHE.containsKey(namespace)) {
-                    for (String resourcePath : TEXTURE_CACHE.get(namespace).keySet()) {
-                        if (resourcePath.startsWith(path)) {
-                            resourceOutput.accept(new ResourceLocation(namespace, resourcePath), 
-                                () -> new ByteArrayInputStream(TEXTURE_CACHE.get(namespace).get(resourcePath)));
-                        }
-                    }
-                }
-                
-                // Lista recursos do sistema de arquivos temporário
-                Path namespacePath = TEMP_DIR.resolve(namespace);
-                Path resourcePath = namespacePath.resolve(path);
-                if (Files.exists(resourcePath) && Files.isDirectory(resourcePath)) {
-                    try {
-                        Files.walk(resourcePath)
-                            .filter(Files::isRegularFile)
-                            .forEach(file -> {
-                                String relativePath = namespacePath.relativize(file).toString().replace('\\', '/');
-                                try {
-                                    resourceOutput.accept(
-                                        new ResourceLocation(namespace, relativePath),
-                                        () -> Files.newInputStream(file)
-                                    );
-                                } catch (IOException e) {
-                                    LOGGER.error("[ResourcePack] Erro ao listar recurso {}: {}", 
-                                        relativePath, e.getMessage());
-                                }
-                            });
-                    } catch (IOException e) {
-                        LOGGER.error("[ResourcePack] Erro ao listar recursos em {}: {}", 
-                            resourcePath, e.getMessage());
-                    }
-                }
+            
+            String namespace = location.getNamespace();
+            String path = location.getPath();
+            
+            // Verifica se a textura está no cache
+            if (TEXTURE_CACHE.containsKey(namespace) && TEXTURE_CACHE.get(namespace).containsKey(path)) {
+                byte[] data = TEXTURE_CACHE.get(namespace).get(path);
+                return () -> new ByteArrayInputStream(data);
             }
-
-            @Override
-            public void close() {
-                // Nada a fazer aqui
-            }
-
-            @Override
-            public Collection<ResourceLocation> getResources(PackType type, String namespace, String path, Predicate<ResourceLocation> filter) {
-                List<ResourceLocation> resources = new ArrayList<>();
-                
-                // Adiciona recursos do cache
-                if (TEXTURE_CACHE.containsKey(namespace)) {
-                    for (String resourcePath : TEXTURE_CACHE.get(namespace).keySet()) {
-                        if (resourcePath.startsWith(path)) {
-                            ResourceLocation location = new ResourceLocation(namespace, resourcePath);
-                            if (filter.test(location)) {
-                                resources.add(location);
-                            }
-                        }
-                    }
-                }
-                
-                // Adiciona recursos do sistema de arquivos temporário
-                Path namespacePath = TEMP_DIR.resolve(namespace);
-                Path resourcePath = namespacePath.resolve(path);
-                if (Files.exists(resourcePath) && Files.isDirectory(resourcePath)) {
-                    try {
-                        Files.walk(resourcePath)
-                            .filter(Files::isRegularFile)
-                            .forEach(file -> {
-                                String relativePath = namespacePath.relativize(file).toString().replace('\\', '/');
-                                ResourceLocation location = new ResourceLocation(namespace, relativePath);
-                                if (filter.test(location)) {
-                                    resources.add(location);
-                                }
-                            });
-                    } catch (IOException e) {
-                        LOGGER.error("[ResourcePack] Erro ao listar recursos em {}: {}", 
-                            resourcePath, e.getMessage());
-                    }
-                }
-                
-                return resources;
-            }
-
-            @Override
-            public Set<String> getNamespaces(PackType type) {
-                Set<String> namespaces = new HashSet<>(TEXTURE_CACHE.keySet());
-                
-                // Adiciona namespaces do sistema de arquivos temporário
+            
+            // Tenta carregar do sistema de arquivos temporário
+            Path filePath = TEMP_DIR.resolve(namespace).resolve(path);
+            if (Files.exists(filePath)) {
                 try {
-                    if (Files.exists(TEMP_DIR)) {
-                        Files.list(TEMP_DIR)
-                            .filter(Files::isDirectory)
-                            .forEach(dir -> namespaces.add(dir.getFileName().toString()));
-                    }
-                } catch (IOException e) {
-                    LOGGER.error("[ResourcePack] Erro ao listar namespaces: {}", e.getMessage());
+                    return () -> Files.newInputStream(filePath);
+                } catch (Exception e) {
+                    LOGGER.error("[ResourcePack] Erro ao abrir arquivo {}: {}", filePath, e.getMessage());
+                    return null;
                 }
-                
-                return namespaces;
             }
+            
+            return null;
+        }
 
-            @Override
-            public Map<ResourceLocation, IoSupplier<InputStream>> listResources(PackType packType, String namespace, String path, int maxDepth, Predicate<ResourceLocation> filter) {
-                Map<ResourceLocation, IoSupplier<InputStream>> resources = new HashMap<>();
-                
-                // Adiciona recursos do cache
-                if (TEXTURE_CACHE.containsKey(namespace)) {
-                    for (String resourcePath : TEXTURE_CACHE.get(namespace).keySet()) {
-                        if (resourcePath.startsWith(path)) {
-                            ResourceLocation location = new ResourceLocation(namespace, resourcePath);
-                            if (filter.test(location)) {
-                                byte[] data = TEXTURE_CACHE.get(namespace).get(resourcePath);
-                                resources.put(location, () -> new ByteArrayInputStream(data));
-                            }
-                        }
-                    }
-                }
-                
-                // Adiciona recursos do sistema de arquivos temporário
-                Path namespacePath = TEMP_DIR.resolve(namespace);
-                Path resourcePath = namespacePath.resolve(path);
-                if (Files.exists(resourcePath) && Files.isDirectory(resourcePath)) {
-                    try {
-                        Files.walk(resourcePath, maxDepth)
-                            .filter(Files::isRegularFile)
-                            .forEach(file -> {
-                                String relativePath = namespacePath.relativize(file).toString().replace('\\', '/');
-                                ResourceLocation location = new ResourceLocation(namespace, relativePath);
-                                if (filter.test(location)) {
-                                    resources.put(location, () -> {
-                                        try {
-                                            return Files.newInputStream(file);
-                                        } catch (IOException e) {
-                                            LOGGER.error("[ResourcePack] Erro ao abrir recurso {}: {}", 
-                                                relativePath, e.getMessage());
-                                            return null;
-                                        }
-                                    });
-                                }
-                            });
-                    } catch (IOException e) {
-                        LOGGER.error("[ResourcePack] Erro ao listar recursos em {}: {}", 
-                            resourcePath, e.getMessage());
-                    }
-                }
-                
-                return resources;
+        @Override
+        public void listResources(PackType packType, String namespace, String path, ResourceOutput resourceOutput) {
+            if (packType != PackType.CLIENT_RESOURCES) {
+                return;
             }
-        };
+            
+            // Lista recursos do cache
+            if (TEXTURE_CACHE.containsKey(namespace)) {
+                for (String resourcePath : TEXTURE_CACHE.get(namespace).keySet()) {
+                    if (resourcePath.startsWith(path)) {
+                        ResourceLocation location = ResourceLocation.parse(namespace + ":" + resourcePath);
+                        resourceOutput.accept(location, 
+                            () -> new ByteArrayInputStream(TEXTURE_CACHE.get(namespace).get(resourcePath)));
+                    }
+                }
+            }
+            
+            // Lista recursos do sistema de arquivos temporário
+            Path namespacePath = TEMP_DIR.resolve(namespace);
+            Path resourcePath = namespacePath.resolve(path);
+            if (Files.exists(resourcePath) && Files.isDirectory(resourcePath)) {
+                try {
+                    Files.walk(resourcePath)
+                        .filter(Files::isRegularFile)
+                        .forEach(file -> {
+                            String relativePath = namespacePath.relativize(file).toString().replace('\\', '/');
+                            ResourceLocation location = ResourceLocation.parse(namespace + ":" + relativePath);
+                            try {
+                                resourceOutput.accept(
+                                    location,
+                                    () -> Files.newInputStream(file)
+                                );
+                            } catch (Exception e) {
+                                LOGGER.error("[ResourcePack] Erro ao listar recurso {}: {}", 
+                                    relativePath, e.getMessage());
+                            }
+                        });
+                } catch (Exception e) {
+                    LOGGER.error("[ResourcePack] Erro ao listar recursos em {}: {}", 
+                        resourcePath, e.getMessage());
+                }
+            }
+        }
+
+        @Override
+        public Set<String> getNamespaces(PackType packType) {
+            if (packType != PackType.CLIENT_RESOURCES) {
+                return Collections.emptySet();
+            }
+            
+            Set<String> namespaces = new HashSet<>(TEXTURE_CACHE.keySet());
+            
+            // Adiciona namespaces do sistema de arquivos temporário
+            try {
+                if (Files.exists(TEMP_DIR)) {
+                    Files.list(TEMP_DIR)
+                        .filter(Files::isDirectory)
+                        .forEach(dir -> namespaces.add(dir.getFileName().toString()));
+                }
+            } catch (Exception e) {
+                LOGGER.error("[ResourcePack] Erro ao listar namespaces: {}", e.getMessage());
+            }
+            
+            return namespaces;
+        }
+
+        @Override
+        public void close() {
+            // Nada a fazer aqui
+        }
     }
 
     /**
@@ -297,7 +229,7 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
         if (mod.blocks() != null && !mod.blocks().isEmpty()) {
             mod.blocks().forEach(block -> {
                 try {
-                    if (block.texture() != null && !block.texture().isEmpty()) {
+                    if (block.texture() != null && block.texture().value() != null && !block.texture().value().isEmpty()) {
                         processBlockTexture(modId, block.id(), block.texture().type(), block.texture().value());
                         LOGGER.info("[ResourcePack] Textura do bloco {} processada com sucesso", block.id());
                     }
@@ -312,7 +244,7 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
         if (mod.items() != null && !mod.items().isEmpty()) {
             mod.items().forEach(item -> {
                 try {
-                    if (item.texture() != null && !item.texture().isEmpty()) {
+                    if (item.texture() != null && item.texture().value() != null && !item.texture().value().isEmpty()) {
                         processItemTexture(modId, item.id(), item.texture().type(), item.texture().value());
                         LOGGER.info("[ResourcePack] Textura do item {} processada com sucesso", item.id());
                     }
@@ -332,9 +264,8 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
      * @param blockId O ID do bloco
      * @param textureType O tipo da textura (base64, url, local)
      * @param textureValue O valor da textura (base64, url, caminho local)
-     * @throws IOException Se ocorrer um erro ao processar a textura
      */
-    private static void processBlockTexture(String modId, String blockId, String textureType, String textureValue) throws IOException {
+    private static void processBlockTexture(String modId, String blockId, String textureType, String textureValue) {
         if ("base64".equalsIgnoreCase(textureType)) {
             // Decodifica a textura Base64
             byte[] textureData = Base64.getDecoder().decode(textureValue);
@@ -373,9 +304,8 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
      * @param itemId O ID do item
      * @param textureType O tipo da textura (base64, url, local)
      * @param textureValue O valor da textura (base64, url, caminho local)
-     * @throws IOException Se ocorrer um erro ao processar a textura
      */
-    private static void processItemTexture(String modId, String itemId, String textureType, String textureValue) throws IOException {
+    private static void processItemTexture(String modId, String itemId, String textureType, String textureValue) {
         if ("base64".equalsIgnoreCase(textureType)) {
             // Decodifica a textura Base64
             byte[] textureData = Base64.getDecoder().decode(textureValue);
@@ -409,98 +339,101 @@ public class DynamicResourcePackManager implements ResourceManagerReloadListener
     }
 
     /**
-     * Adiciona uma textura ao cache de texturas.
-     * @param modId O ID do mod
+     * Adiciona uma textura ao cache.
+     * @param namespace O namespace da textura (geralmente o ID do mod)
      * @param path O caminho da textura
      * @param data Os dados da textura
      */
-    private static void addTextureToCache(String modId, String path, byte[] data) {
-        TEXTURE_CACHE.computeIfAbsent(modId, k -> new HashMap<>()).put(path, data);
-        LOGGER.debug("[ResourcePack] Textura adicionada ao cache: {}:{}", modId, path);
+    private static void addTextureToCache(String namespace, String path, byte[] data) {
+        TEXTURE_CACHE.computeIfAbsent(namespace, k -> new HashMap<>()).put(path, data);
     }
 
     /**
      * Salva uma textura no sistema de arquivos temporário.
-     * @param modId O ID do mod
+     * @param namespace O namespace da textura (geralmente o ID do mod)
      * @param path O caminho da textura
      * @param data Os dados da textura
-     * @throws IOException Se ocorrer um erro ao salvar a textura
      */
-    private static void saveTextureToFile(String modId, String path, byte[] data) throws IOException {
-        Path filePath = TEMP_DIR.resolve(modId).resolve(path);
-        Files.createDirectories(filePath.getParent());
-        Files.write(filePath, data);
-        LOGGER.debug("[ResourcePack] Textura salva em: {}", filePath);
-    }
-
-    /**
-     * Baixa uma textura de uma URL.
-     * @param url A URL da textura
-     * @return Os dados da textura
-     * @throws IOException Se ocorrer um erro ao baixar a textura
-     */
-    private static byte[] downloadTexture(String url) throws IOException {
-        try (InputStream inputStream = new java.net.URL(url).openStream()) {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-            return outputStream.toByteArray();
+    private static void saveTextureToFile(String namespace, String path, byte[] data) {
+        try {
+            Path filePath = TEMP_DIR.resolve(namespace).resolve(path);
+            Files.createDirectories(filePath.getParent());
+            Files.write(filePath, data);
+        } catch (IOException e) {
+            LOGGER.error("[ResourcePack] Erro ao salvar textura {}: {}", path, e.getMessage());
         }
     }
 
     /**
-     * Gera e adiciona os arquivos de modelo e blockstate para um bloco.
-     * @param modId O ID do mod
-     * @param blockId O ID do bloco
-     * @throws IOException Se ocorrer um erro ao gerar os arquivos
+     * Baixa uma textura de uma URL.
+     * @param urlString A URL da textura
+     * @return Os dados da textura
      */
-    private static void generateBlockModelFiles(String modId, String blockId) throws IOException {
-        // Gera o arquivo blockstate
-        String blockstateJson = String.format(
-            "{\"variants\":{\"\":{\"model\":\"%s:block/%s\"}}}", 
-            modId, blockId
-        );
-        byte[] blockstateData = blockstateJson.getBytes();
-        addTextureToCache(modId, "blockstates/" + blockId + ".json", blockstateData);
-        saveTextureToFile(modId, "blockstates/" + blockId + ".json", blockstateData);
-        
-        // Gera o arquivo de modelo do bloco
-        String blockModelJson = String.format(
-            "{\"parent\":\"minecraft:block/cube_all\",\"textures\":{\"all\":\"%s:block/%s\"}}", 
-            modId, blockId
-        );
-        byte[] blockModelData = blockModelJson.getBytes();
-        addTextureToCache(modId, "models/block/" + blockId + ".json", blockModelData);
-        saveTextureToFile(modId, "models/block/" + blockId + ".json", blockModelData);
-        
-        // Gera o arquivo de modelo do item do bloco
-        String itemModelJson = String.format(
-            "{\"parent\":\"%s:block/%s\"}", 
-            modId, blockId
-        );
-        byte[] itemModelData = itemModelJson.getBytes();
-        addTextureToCache(modId, "models/item/" + blockId + ".json", itemModelData);
-        saveTextureToFile(modId, "models/item/" + blockId + ".json", itemModelData);
+    private static byte[] downloadTexture(String urlString) {
+        try {
+            URL url = new URL(urlString);
+            try (InputStream in = url.openStream();
+                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, bytesRead);
+                }
+                return out.toByteArray();
+            }
+        } catch (IOException e) {
+            LOGGER.error("[ResourcePack] Erro ao baixar textura da URL {}: {}", urlString, e.getMessage());
+            return new byte[0];
+        }
     }
 
     /**
-     * Gera e adiciona o arquivo de modelo para um item.
+     * Gera os arquivos de modelo e blockstate para um bloco.
+     * @param modId O ID do mod
+     * @param blockId O ID do bloco
+     */
+    private static void generateBlockModelFiles(String modId, String blockId) {
+        // Gera o arquivo blockstate
+        String blockstatePath = "blockstates/" + blockId + ".json";
+        String blockstateJson = String.format(
+            "{\"variants\":{\"\":{\"model\":\"%s:block/%s\"}}}",
+            modId, blockId
+        );
+        addTextureToCache(modId, blockstatePath, blockstateJson.getBytes());
+        saveTextureToFile(modId, blockstatePath, blockstateJson.getBytes());
+        
+        // Gera o arquivo de modelo do bloco
+        String blockModelPath = "models/block/" + blockId + ".json";
+        String blockModelJson = String.format(
+            "{\"parent\":\"minecraft:block/cube_all\",\"textures\":{\"all\":\"%s:block/%s\"}}",
+            modId, blockId
+        );
+        addTextureToCache(modId, blockModelPath, blockModelJson.getBytes());
+        saveTextureToFile(modId, blockModelPath, blockModelJson.getBytes());
+        
+        // Gera o arquivo de modelo do item do bloco
+        String itemModelPath = "models/item/" + blockId + ".json";
+        String itemModelJson = String.format(
+            "{\"parent\":\"%s:block/%s\"}",
+            modId, blockId
+        );
+        addTextureToCache(modId, itemModelPath, itemModelJson.getBytes());
+        saveTextureToFile(modId, itemModelPath, itemModelJson.getBytes());
+    }
+
+    /**
+     * Gera o arquivo de modelo para um item.
      * @param modId O ID do mod
      * @param itemId O ID do item
-     * @throws IOException Se ocorrer um erro ao gerar o arquivo
      */
-    private static void generateItemModelFile(String modId, String itemId) throws IOException {
-        // Gera o arquivo de modelo do item
+    private static void generateItemModelFile(String modId, String itemId) {
+        String itemModelPath = "models/item/" + itemId + ".json";
         String itemModelJson = String.format(
-            "{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"%s:item/%s\"}}", 
+            "{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"%s:item/%s\"}}",
             modId, itemId
         );
-        byte[] itemModelData = itemModelJson.getBytes();
-        addTextureToCache(modId, "models/item/" + itemId + ".json", itemModelData);
-        saveTextureToFile(modId, "models/item/" + itemId + ".json", itemModelData);
+        addTextureToCache(modId, itemModelPath, itemModelJson.getBytes());
+        saveTextureToFile(modId, itemModelPath, itemModelJson.getBytes());
     }
 
     @Override

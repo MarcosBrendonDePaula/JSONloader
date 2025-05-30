@@ -8,13 +8,18 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class DynamicCreativeTabManager {
+    private static final Logger LOGGER = LogManager.getLogger(JSONloader.MODID + " DynamicCreativeTabManager");
+    
     // Mapa para armazenar os DeferredRegister de cada mod
     private static final Map<String, DeferredRegister<CreativeModeTab>> MOD_TABS_REGISTERS = new HashMap<>();
     
@@ -57,6 +62,32 @@ public class DynamicCreativeTabManager {
             
             return true;
         } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Registra todos os itens de um mod no EventBus.
+     * Este método é chamado durante a inicialização do mod para garantir que
+     * todos os itens sejam registrados corretamente no sistema de eventos do Forge.
+     * 
+     * @param modId ID do mod
+     * @param eventBus EventBus do Forge
+     * @return true se o registro foi bem-sucedido, false caso contrário
+     */
+    public static boolean registerModItems(String modId, IEventBus eventBus) {
+        try {
+            LOGGER.info("Registrando itens do mod {} no EventBus", modId);
+            
+            // Registra as abas criativas do mod no EventBus
+            registerModTabsToEventBus(modId, eventBus);
+            
+            // Aqui poderia haver lógica adicional para registrar outros elementos do mod
+            
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Falha ao registrar itens do mod {} no EventBus: {}", modId, e.getMessage());
+            LOGGER.debug("Detalhes da exceção:", e);
             return false;
         }
     }

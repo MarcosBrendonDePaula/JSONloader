@@ -82,7 +82,7 @@ public class ListModsCommand {
         List<LoadedMod> mods = JsonModLoader.getLoadedMods();
         
         LoadedMod mod = mods.stream()
-                .filter(m -> m.mod_id().equalsIgnoreCase(modId))
+                .filter(m -> m.modId().equalsIgnoreCase(modId))
                 .findFirst()
                 .orElse(null);
         
@@ -136,9 +136,9 @@ public class ListModsCommand {
             return 0;
         }
         
-        int totalBlocks = mods.stream().mapToInt(LoadedMod::blocks_count).sum();
-        int totalItems = mods.stream().mapToInt(LoadedMod::items_count).sum();
-        int totalDrops = mods.stream().mapToInt(LoadedMod::drops_count).sum();
+        int totalBlocks = mods.stream().mapToInt(LoadedMod::blocksCount).sum();
+        int totalItems = mods.stream().mapToInt(LoadedMod::itemsCount).sum();
+        int totalDrops = mods.stream().mapToInt(mod -> mod.dropsCount()).sum();
         
         source.sendSuccess(() -> Component.literal("§2=== Estatísticas de Mods JSON ==="), false);
         source.sendSuccess(() -> Component.literal("§7Total de mods: §a" + mods.size()), false);
